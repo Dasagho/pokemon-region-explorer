@@ -1,13 +1,45 @@
-import { motion } from 'framer-motion'
-import { Sparkles, MapPin, Search } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles, MapPin, Search, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import type { Pokemon } from '@/services/pokeApi'
 
 interface HeroProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   totalRegions: number
+  searchResults: Pokemon[]
+  isSearching: boolean
 }
 
-export function Hero ({ searchQuery, onSearchChange, totalRegions }: HeroProps) {
+export function Hero ({
+  searchQuery,
+  onSearchChange,
+  totalRegions,
+  searchResults,
+  isSearching,
+}: HeroProps) {
+  const [isFocused, setIsFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsFocused(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const clearSearch = () => {
+    onSearchChange('')
+    inputRef.current?.focus()
+  }
+
   return (
     <section className="relative overflow-hidden">
       {/* Animated Gradient Background */}
@@ -102,6 +134,7 @@ export function Hero ({ searchQuery, onSearchChange, totalRegions }: HeroProps) 
 
           {/* Search Bar */}
           <motion.div
+            ref={containerRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -110,13 +143,83 @@ export function Hero ({ searchQuery, onSearchChange, totalRegions }: HeroProps) 
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <input
+                ref={inputRef}
                 type="text"
-                placeholder="Search regions..."
+                placeholder="Search Pokemon by name..."
                 value={searchQuery}
                 onChange={e => onSearchChange(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/80 dark:bg-black/50 backdrop-blur-sm border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-base shadow-lg"
+                onFocus={() => setIsFocused(true)}
+                className="w-full pl-12 pr-10 py-4 rounded-2xl bg-white/80 dark:bg-black/50 backdrop-blur-sm border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none text-base shadow-lg"
               />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
+
+            {/* Search Results Dropdown */}
+            <AnimatePresence>
+              {isFocused && searchQuery && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md border border-border rounded-2xl shadow-xl overflow-hidden z-50"
+                >
+                  {isSearching ? (
+                    <div className="p-4 text-center text-muted-foreground">
+                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-2" />
+                      Searching...
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="max-h-80 overflow-y-auto">
+                      {searchResults.slice(0, 10).map((pokemon, index) => (
+                        <Link
+                          key={pokemon.name}
+                          to={`/pokemon/${pokemon.name}`}
+                          onClick={() => {
+                            onSearchChange('')
+                            setIsFocused(false)
+                          }}
+                        >
+                          <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.03 }}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-0"
+                          >
+                            <img
+                              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
+                              alt={pokemon.name}
+                              className="w-10 h-10 object-contain"
+                              onError={e => {
+                                (e.target as HTMLImageElement).src =
+                                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
+                              }}
+                            />
+                            <span className="capitalize font-medium">{pokemon.name}</span>
+                          </motion.div>
+                        </Link>
+                      ))}
+                      {searchResults.length > 10 && (
+                        <div className="px-4 py-2 text-center text-sm text-muted-foreground border-t border-border">
+                          +{searchResults.length - 10} more results
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-muted-foreground">
+                      No Pokemon found matching &quot;{searchQuery}&quot;
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Stats */}

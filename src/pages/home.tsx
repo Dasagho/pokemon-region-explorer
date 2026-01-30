@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { MapPin, ChevronRight, Sparkles } from 'lucide-react'
-import { pokeApi, type Region } from '@/services/pokeApi'
+import { pokeApi, type Region, type Pokemon } from '@/services/pokeApi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Hero } from '@/components/hero'
@@ -99,18 +99,40 @@ const cardVariants = {
   },
 }
 
+// Debounce hook
+function useDebounce<T> (value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
 export function HomePage () {
   const [regions, setRegions] = useState<Region[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Pokemon[]>([])
+  const [isSearching, setIsSearching] = useState(false)
 
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
+
+  // Fetch regions only (not all Pokemon)
   useEffect(() => {
     const fetchRegions = async () => {
       try {
         setLoading(true)
-        const data = await pokeApi.getRegions()
-        setRegions(data)
+        const regionsData = await pokeApi.getRegions()
+        setRegions(regionsData)
       } catch (err) {
         setError('Failed to load regions')
         console.error(err)
@@ -122,10 +144,28 @@ export function HomePage () {
     fetchRegions()
   }, [])
 
-  const filteredRegions = useMemo(() => {
-    if (!searchQuery) return regions
-    return regions.filter(region => region.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [regions, searchQuery])
+  // Search Pokemon when debounced query changes
+  useEffect(() => {
+    const searchPokemon = async () => {
+      if (!debouncedSearchQuery.trim()) {
+        setSearchResults([])
+        return
+      }
+
+      setIsSearching(true)
+      try {
+        const results = await pokeApi.searchPokemonByName(debouncedSearchQuery)
+        setSearchResults(results)
+      } catch (err) {
+        console.error('Search error:', err)
+        setSearchResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    }
+
+    searchPokemon()
+  }, [debouncedSearchQuery])
 
   const formatRegionName = (name: string) => {
     return name.charAt(0).toUpperCase() + name.slice(1)
@@ -155,6 +195,8 @@ export function HomePage () {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         totalRegions={regions.length}
+        searchResults={searchResults}
+        isSearching={isSearching}
       />
 
       <section className="container py-12 md:py-16">
@@ -169,17 +211,9 @@ export function HomePage () {
           <div>
             <h2 className="text-3xl font-bold tracking-tight mb-1">Regions</h2>
             <p className="text-muted-foreground">
-              {filteredRegions.length} {filteredRegions.length === 1 ? 'region' : 'regions'} found
+              {regions.length} {regions.length === 1 ? 'region' : 'regions'} available
             </p>
           </div>
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="text-sm text-primary hover:underline"
-            >
-              Clear search
-            </button>
-          )}
         </motion.div>
 
         {/* Regions Grid */}
@@ -192,7 +226,7 @@ export function HomePage () {
             animate="visible"
             className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           >
-            {filteredRegions.map((region, index) => {
+            {regions.map((region, index) => {
               const colors = regionColors[region.name] || {
                 bg: 'bg-muted',
                 text: 'text-muted-foreground',
@@ -251,21 +285,6 @@ export function HomePage () {
                 </motion.div>
               )
             })}
-          </motion.div>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredRegions.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-              <MapPin className="w-10 h-10 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No regions found</h3>
-            <p className="text-muted-foreground">Try adjusting your search query</p>
           </motion.div>
         )}
       </section>

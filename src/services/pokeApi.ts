@@ -169,6 +169,53 @@ class PokeApiService {
   getPokemonSpriteUrl (id: number): string {
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
   }
+
+  // Search Pokemon by trying to fetch them directly - efficient on-demand search
+  async searchPokemonByName (query: string): Promise<Pokemon[]> {
+    if (!query.trim()) return []
+
+    const searchTerm = query.toLowerCase().trim()
+    const results: Pokemon[] = []
+
+    // Try exact match first
+    try {
+      const exactMatch = await this.getPokemon(searchTerm)
+      results.push(exactMatch)
+    } catch {
+      // Exact match not found, continue with variations
+    }
+
+    // Common Pokemon name patterns to try
+    const variations = [
+      searchTerm,
+      `${searchTerm}-male`,
+      `${searchTerm}-female`,
+      `${searchTerm}-ordinary`,
+      `${searchTerm}-incarnate`,
+      `${searchTerm}-altered`,
+      `${searchTerm}-land`,
+    ]
+
+    // Try variations (limit to avoid too many requests)
+    const promises = variations.slice(0, 5).map(async name => {
+      if (name === searchTerm && results.length > 0) return // Skip if already found
+      try {
+        const pokemon = await this.getPokemon(name)
+        return pokemon
+      } catch {
+        return null
+      }
+    })
+
+    const found = await Promise.all(promises)
+    found.forEach(pokemon => {
+      if (pokemon && !results.find(p => p.id === pokemon.id)) {
+        results.push(pokemon)
+      }
+    })
+
+    return results
+  }
 }
 
 export interface PokemonLocation {
