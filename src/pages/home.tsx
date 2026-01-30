@@ -1,39 +1,109 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { MapPin, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { MapPin, ChevronRight, Sparkles } from 'lucide-react'
 import { pokeApi, type Region } from '@/services/pokeApi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { Hero } from '@/components/hero'
+import { RegionSkeleton } from '@/components/region-skeleton'
 
 const regionImages: Record<string, string> = {
-  kanto: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png',
-  johto: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/157.png',
-  hoenn: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/260.png',
-  sinnoh: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/392.png',
-  unova: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/500.png',
-  kalos: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/658.png',
-  alola: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/730.png',
-  galar: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/815.png',
-  paldea: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/906.png',
+  kanto:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
+  johto:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/157.png',
+  hoenn:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/260.png',
+  sinnoh:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/392.png',
+  unova:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/500.png',
+  kalos:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png',
+  alola:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/730.png',
+  galar:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/815.png',
+  paldea:
+    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/906.png',
 }
 
-const regionColors: Record<string, string> = {
-  kanto: 'bg-red-500/10 text-red-600 dark:text-red-400',
-  johto: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  hoenn: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-  sinnoh: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
-  unova: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
-  kalos: 'bg-pink-500/10 text-pink-600 dark:text-pink-400',
-  alola: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
-  galar: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-  paldea: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+const regionColors: Record<string, { bg: string; text: string; gradient: string }> = {
+  kanto: {
+    bg: 'bg-red-500/10',
+    text: 'text-red-600 dark:text-red-400',
+    gradient: 'from-red-500/20 to-orange-500/20',
+  },
+  johto: {
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-600 dark:text-amber-400',
+    gradient: 'from-amber-500/20 to-yellow-500/20',
+  },
+  hoenn: {
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-600 dark:text-blue-400',
+    gradient: 'from-blue-500/20 to-cyan-500/20',
+  },
+  sinnoh: {
+    bg: 'bg-cyan-500/10',
+    text: 'text-cyan-600 dark:text-cyan-400',
+    gradient: 'from-cyan-500/20 to-teal-500/20',
+  },
+  unova: {
+    bg: 'bg-purple-500/10',
+    text: 'text-purple-600 dark:text-purple-400',
+    gradient: 'from-purple-500/20 to-indigo-500/20',
+  },
+  kalos: {
+    bg: 'bg-pink-500/10',
+    text: 'text-pink-600 dark:text-pink-400',
+    gradient: 'from-pink-500/20 to-rose-500/20',
+  },
+  alola: {
+    bg: 'bg-orange-500/10',
+    text: 'text-orange-600 dark:text-orange-400',
+    gradient: 'from-orange-500/20 to-red-500/20',
+  },
+  galar: {
+    bg: 'bg-indigo-500/10',
+    text: 'text-indigo-600 dark:text-indigo-400',
+    gradient: 'from-indigo-500/20 to-purple-500/20',
+  },
+  paldea: {
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    gradient: 'from-emerald-500/20 to-green-500/20',
+  },
 }
 
-export function HomePage () {
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.4, 0, 0.2, 1] as const,
+    },
+  },
+}
+
+export function HomePage() {
   const [regions, setRegions] = useState<Region[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const fetchRegions = async () => {
@@ -52,84 +122,153 @@ export function HomePage () {
     fetchRegions()
   }, [])
 
+  const filteredRegions = useMemo(() => {
+    if (!searchQuery) return regions
+    return regions.filter(region => region.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [regions, searchQuery])
+
   const formatRegionName = (name: string) => {
     return name.charAt(0).toUpperCase() + name.slice(1)
   }
 
-  if (loading) {
-    return (
-      <div className="container py-10">
-        <div className="mb-8">
-          <Skeleton className="h-10 w-[250px] mb-2" />
-          <Skeleton className="h-4 w-[400px]" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[200px]" />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   if (error) {
     return (
-      <div className="container py-10">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-destructive">Error</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-destructive" />
+          </div>
+          <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
           <p className="text-muted-foreground">{error}</p>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="container py-10">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">Pokemon Regions</h1>
-        <p className="text-muted-foreground text-lg">
-          Explore Pokemon locations, encounter areas, and discover where to find your favorite
-          Pokemon
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <Hero
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        totalRegions={regions.length}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {regions.map(region => (
-          <Link key={region.name} to={`/region/${region.name}`}>
-            <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-primary/50">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <Badge
-                    variant="secondary"
-                    className={`${regionColors[region.name] || 'bg-muted'} capitalize`}
-                  >
-                    <MapPin className="h-3 w-3 mr-1" />
-                    Region
-                  </Badge>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
-                <CardTitle className="text-2xl mt-2">{formatRegionName(region.name)}</CardTitle>
-                <CardDescription>Explore locations and encounters</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-center py-4">
-                  {regionImages[region.name] ? (
-                    <img
-                      src={regionImages[region.name]}
-                      alt={`${region.name} starter`}
-                      className="w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center">
-                      <MapPin className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
+      <section className="container py-12 md:py-16">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight mb-1">Regions</h2>
+            <p className="text-muted-foreground">
+              {filteredRegions.length} {filteredRegions.length === 1 ? 'region' : 'regions'} found
+            </p>
+          </div>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="text-sm text-primary hover:underline"
+            >
+              Clear search
+            </button>
+          )}
+        </motion.div>
+
+        {/* Regions Grid */}
+        {loading ? (
+          <RegionSkeleton />
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {filteredRegions.map((region, index) => {
+              const colors = regionColors[region.name] || {
+                bg: 'bg-muted',
+                text: 'text-muted-foreground',
+                gradient: 'from-gray-500/20 to-gray-600/20',
+              }
+
+              return (
+                <motion.div key={region.name} variants={cardVariants} custom={index}>
+                  <Link to={`/region/${region.name}`}>
+                    <Card className="group relative overflow-hidden cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 card-lift">
+                      {/* Background Gradient */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                      />
+
+                      <CardHeader className="relative pb-2">
+                        <div className="flex items-center justify-between">
+                          <Badge
+                            variant="secondary"
+                            className={`${colors.bg} ${colors.text} capitalize font-medium`}
+                          >
+                            <MapPin className="h-3 w-3 mr-1" />
+                            Region
+                          </Badge>
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                          </div>
+                        </div>
+                        <CardTitle className="text-2xl mt-3 group-hover:text-primary transition-colors duration-300">
+                          {formatRegionName(region.name)}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2">
+                          Explore locations, routes, and encounter wild Pokemon
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="relative">
+                        <div className="flex justify-center py-6">
+                          {regionImages[region.name] ? (
+                            <motion.img
+                              src={regionImages[region.name]}
+                              alt={`${region.name} starter`}
+                              className="w-28 h-28 object-contain drop-shadow-lg"
+                              whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                              transition={{ duration: 0.5 }}
+                            />
+                          ) : (
+                            <div className="w-28 h-28 bg-muted rounded-full flex items-center justify-center">
+                              <MapPin className="h-10 w-10 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!loading && filteredRegions.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+              <MapPin className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No regions found</h3>
+            <p className="text-muted-foreground">Try adjusting your search query</p>
+          </motion.div>
+        )}
+      </section>
     </div>
   )
 }

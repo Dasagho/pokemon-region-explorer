@@ -16,14 +16,23 @@ export const router = createBrowserRouter([
       {
         path: '/region/:regionName',
         element: <RegionPage />,
+        handle: {
+          crumb: () => 'Region',
+        },
       },
       {
         path: '/location/:locationName',
         element: <LocationPage />,
+        handle: {
+          crumb: () => 'Location',
+        },
       },
       {
         path: '/pokemon/:pokemonName',
         element: <PokemonPage />,
+        handle: {
+          crumb: () => 'Pokemon',
+        },
       },
     ],
   },

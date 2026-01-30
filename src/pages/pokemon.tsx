@@ -47,7 +47,7 @@ const statNames: Record<string, string> = {
   speed: 'Speed',
 }
 
-export function PokemonPage () {
+export function PokemonPage() {
   const { pokemonName } = useParams<{ pokemonName: string }>()
   const [pokemon, setPokemon] = useState<Pokemon | null>(null)
   const [loading, setLoading] = useState(true)

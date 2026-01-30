@@ -61,7 +61,7 @@ const regionInfo: Record<string, { description: string; generation: string; star
     },
   }
 
-export function RegionPage () {
+export function RegionPage() {
   const { regionName } = useParams<{ regionName: string }>()
   const [region, setRegion] = useState<RegionDetails | null>(null)
   const [loading, setLoading] = useState(true)
@@ -96,8 +96,9 @@ export function RegionPage () {
   const getLocationType = (name: string) => {
     if (name.includes('route')) return 'Route'
     if (name.includes('city') || name.includes('town')) return 'Settlement'
-    if (name.includes('cave') || name.includes('mt-') || name.includes('mount'))
-    {return 'Cave/Mountain'}
+    if (name.includes('cave') || name.includes('mt-') || name.includes('mount')) {
+      return 'Cave/Mountain'
+    }
     if (name.includes('forest') || name.includes('wood')) return 'Forest'
     if (name.includes('tower')) return 'Tower'
     return 'Area'
@@ -249,7 +250,7 @@ export function RegionPage () {
   )
 }
 
-function getStarterId (name: string): number {
+function getStarterId(name: string): number {
   const starters: Record<string, number> = {
     bulbasaur: 1,
     charmander: 4,

@@ -1,5 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
-import { MapPin, Home, Sparkles } from 'lucide-react'
+import { Link, useLocation, useMatches } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { MapPin, Home, Sparkles, ChevronRight } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -14,27 +15,52 @@ const navItems = [
   { path: '#', label: 'Regions', icon: MapPin },
 ]
 
-export function MainLayout ({ children }: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation()
+  const matches = useMatches()
+
+  // Generate breadcrumbs from route matches
+  const breadcrumbs = matches
+    .filter(match => match.handle && (match.handle as { crumb?: () => string }).crumb)
+    .map(match => ({
+      path: match.pathname,
+      label: (match.handle as { crumb: () => string }).crumb(),
+    }))
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <Link to="/" className="mr-6 flex items-center space-x-2">
-              <Sparkles className="h-6 w-6" />
-              <span className="font-bold inline-block">PokéRegion</span>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+        className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60"
+      >
+        <div className="container flex h-16 items-center">
+          <div className="mr-4 flex items-center">
+            <Link to="/" className="mr-6 flex items-center space-x-2 group">
+              <motion.div
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-purple-500 rounded-full blur-lg opacity-50 group-hover:opacity-100 transition-opacity" />
+                <Sparkles className="h-6 w-6 relative z-10 text-primary" />
+              </motion.div>
+              <span className="font-bold text-xl tracking-tight hidden sm:inline-block">
+                PokéRegion
+              </span>
             </Link>
-            <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+            <nav className="hidden md:flex items-center space-x-1">
               {navItems.map(item => (
                 <Link
                   key={item.label}
                   to={item.path}
                   className={cn(
-                    'transition-colors hover:text-foreground/80',
-                    location.pathname === item.path ? 'text-foreground' : 'text-foreground/60',
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                    location.pathname === item.path
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted',
                   )}
                 >
                   {item.label}
@@ -46,25 +72,25 @@ export function MainLayout ({ children }: MainLayoutProps) {
             <ModeToggle />
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="outline" size="icon">
-                  <MapPin className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="relative">
+                  <MapPin className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[240px] sm:w-[300px]">
-                <nav className="flex flex-col space-y-4 mt-8">
+              <SheetContent side="right" className="w-[280px] sm:w-[340px]">
+                <nav className="flex flex-col space-y-2 mt-8">
                   {navItems.map(item => (
                     <Link
                       key={item.label}
                       to={item.path}
                       className={cn(
-                        'flex items-center space-x-2 text-sm font-medium transition-colors',
+                        'flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors',
                         location.pathname === item.path
-                          ? 'text-foreground'
-                          : 'text-foreground/60 hover:text-foreground',
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted',
                       )}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </Link>
                   ))}
@@ -73,25 +99,63 @@ export function MainLayout ({ children }: MainLayoutProps) {
             </Sheet>
           </div>
         </div>
-      </header>
+
+        {/* Breadcrumbs */}
+        {breadcrumbs.length > 0 && (
+          <div className="border-t bg-muted/30">
+            <div className="container py-2">
+              <nav className="flex items-center space-x-2 text-sm">
+                <Link
+                  to="/"
+                  className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Home className="h-4 w-4" />
+                </Link>
+                {breadcrumbs.map((crumb, index) => (
+                  <div key={crumb.path} className="flex items-center">
+                    <ChevronRight className="h-4 w-4 text-muted-foreground mx-1" />
+                    {index === breadcrumbs.length - 1 ? (
+                      <span className="font-medium text-foreground">{crumb.label}</span>
+                    ) : (
+                      <Link
+                        to={crumb.path}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {crumb.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
+          </div>
+        )}
+      </motion.header>
 
       {/* Main Content */}
       <main className="flex-1">{children}</main>
 
       {/* Footer */}
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-14 md:flex-row">
-          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            Data provided by{' '}
-            <a
-              href="https://pokeapi.co/"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium underline underline-offset-4"
-            >
-              PokéAPI
-            </a>
-          </p>
+      <footer className="border-t bg-muted/30 py-8">
+        <div className="container">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <span className="font-semibold">PokéRegion Explorer</span>
+            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              Data provided by{' '}
+              <a
+                href="https://pokeapi.co/"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                PokéAPI
+              </a>
+            </p>
+            <p className="text-sm text-muted-foreground">Built with React & shadcn/ui</p>
+          </div>
         </div>
       </footer>
     </div>
