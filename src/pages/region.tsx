@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MapPin, ChevronRight, Sparkles } from 'lucide-react'
@@ -9,58 +10,44 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-const regionInfo: Record<string, { description: string; generation: string; starters: string[] }> =
-  {
-    kanto: {
-      description:
-        'The first region introduced in the Pokemon series, featuring iconic locations like Pallet Town and Mt. Moon.',
-      generation: 'Generation I',
-      starters: ['bulbasaur', 'charmander', 'squirtle'],
-    },
-    johto: {
-      description:
-        'A region west of Kanto featuring the legendary Pokemon Ho-Oh and Lugia, with rich history and culture.',
-      generation: 'Generation II',
-      starters: ['chikorita', 'cyndaquil', 'totodile'],
-    },
-    hoenn: {
-      description:
-        'A region with diverse environments including volcanic areas, oceans, and vast routes.',
-      generation: 'Generation III',
-      starters: ['treecko', 'torchic', 'mudkip'],
-    },
-    sinnoh: {
-      description: 'A region based on Hokkaido, Japan, featuring Mt. Coronet at its center.',
-      generation: 'Generation IV',
-      starters: ['turtwig', 'chimchar', 'piplup'],
-    },
-    unova: {
-      description: 'A diverse region far from Kanto featuring a large metropolitan area.',
-      generation: 'Generation V',
-      starters: ['snivy', 'tepig', 'oshawott'],
-    },
-    kalos: {
-      description:
-        'A region inspired by France, featuring Mega Evolution and the iconic Prism Tower.',
-      generation: 'Generation VI',
-      starters: ['chespin', 'fennekin', 'froakie'],
-    },
-    alola: {
-      description: 'A tropical archipelago region featuring Alolan forms and island trials.',
-      generation: 'Generation VII',
-      starters: ['rowlet', 'litten', 'popplio'],
-    },
-    galar: {
-      description: 'A region based on the United Kingdom featuring Dynamax and Gigantamax.',
-      generation: 'Generation VIII',
-      starters: ['grookey', 'scorbunny', 'sobble'],
-    },
-    paldea: {
-      description: 'An open-world region featuring the Terastal phenomenon.',
-      generation: 'Generation IX',
-      starters: ['sprigatito', 'fuecoco', 'quaxly'],
-    },
-  }
+const regionInfo: Record<string, { generation: string; starters: string[] }> = {
+  kanto: {
+    generation: 'Generation I',
+    starters: ['bulbasaur', 'charmander', 'squirtle'],
+  },
+  johto: {
+    generation: 'Generation II',
+    starters: ['chikorita', 'cyndaquil', 'totodile'],
+  },
+  hoenn: {
+    generation: 'Generation III',
+    starters: ['treecko', 'torchic', 'mudkip'],
+  },
+  sinnoh: {
+    generation: 'Generation IV',
+    starters: ['turtwig', 'chimchar', 'piplup'],
+  },
+  unova: {
+    generation: 'Generation V',
+    starters: ['snivy', 'tepig', 'oshawott'],
+  },
+  kalos: {
+    generation: 'Generation VI',
+    starters: ['chespin', 'fennekin', 'froakie'],
+  },
+  alola: {
+    generation: 'Generation VII',
+    starters: ['rowlet', 'litten', 'popplio'],
+  },
+  galar: {
+    generation: 'Generation VIII',
+    starters: ['grookey', 'scorbunny', 'sobble'],
+  },
+  paldea: {
+    generation: 'Generation IX',
+    starters: ['sprigatito', 'fuecoco', 'quaxly'],
+  },
+}
 
 const regionColors: Record<string, { bg: string; text: string; gradient: string }> = {
   kanto: {
@@ -128,6 +115,7 @@ const cardVariants = {
 }
 
 export function RegionPage () {
+  const { t, i18n } = useTranslation()
   const { regionName } = useParams<{ regionName: string }>()
   const [region, setRegion] = useState<RegionDetails | null>(null)
   const [loading, setLoading] = useState(true)
@@ -142,7 +130,7 @@ export function RegionPage () {
         const data = await pokeApi.getRegionDetails(regionName)
         setRegion(data)
       } catch (err) {
-        setError('Failed to load region details')
+        setError(t('common.error'))
         console.error(err)
       } finally {
         setLoading(false)
@@ -150,7 +138,7 @@ export function RegionPage () {
     }
 
     fetchRegion()
-  }, [regionName])
+  }, [regionName, t])
 
   const formatLocationName = (name: string) => {
     return name
@@ -208,8 +196,8 @@ export function RegionPage () {
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
             <Sparkles className="w-8 h-8 text-destructive" />
           </div>
-          <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
-          <p className="text-muted-foreground">{error || 'Region not found'}</p>
+          <h2 className="text-2xl font-bold text-destructive mb-2">{t('common.error')}</h2>
+          <p className="text-muted-foreground">{error || t('common.notFound')}</p>
         </motion.div>
       </div>
     )
@@ -238,13 +226,13 @@ export function RegionPage () {
             <Button variant="ghost" className="mb-6 -ml-2" asChild>
               <Link to="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Regions
+                {t('region.backToRegions')}
               </Link>
             </Button>
 
             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight capitalize">
-                {region.name}
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+                {pokeApi.getLocalizedName(region.names, i18n.language)}
               </h1>
               <Badge
                 variant="secondary"
@@ -255,8 +243,9 @@ export function RegionPage () {
             </div>
 
             <p className="text-muted-foreground text-lg max-w-2xl">
-              {info?.description ||
-                `Explore the ${region.name} region and discover Pokemon encounters.`}
+              {t(`regions.regionInfo.${region.name}`, {
+                defaultValue: t('regions.explore'),
+              })}
             </p>
           </motion.div>
         </div>
@@ -271,7 +260,7 @@ export function RegionPage () {
             transition={{ delay: 0.2 }}
             className="mb-10"
           >
-            <h2 className="text-2xl font-bold mb-4">Starter Pokemon</h2>
+            <h2 className="text-2xl font-bold mb-4">{t('region.starterPokemon')}</h2>
             <div className="flex flex-wrap gap-4">
               {info.starters.map((starter, index) => (
                 <motion.div
@@ -312,9 +301,11 @@ export function RegionPage () {
             <TabsList className="mb-6">
               <TabsTrigger value="locations" className="gap-2">
                 <MapPin className="h-4 w-4" />
-                Locations ({region.locations.length})
+                {t('region.locations')} ({region.locations.length})
               </TabsTrigger>
-              <TabsTrigger value="pokedexes">Pokedexes ({region.pokedexes.length})</TabsTrigger>
+              <TabsTrigger value="pokedexes">
+                {t('region.pokedexes')} ({region.pokedexes.length})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="locations">
@@ -346,7 +337,7 @@ export function RegionPage () {
                           <CardContent>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <MapPin className="h-4 w-4 mr-1" />
-                              <span>View encounters</span>
+                              <span>{t('region.viewEncounters')}</span>
                             </div>
                           </CardContent>
                         </Card>

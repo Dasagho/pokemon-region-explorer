@@ -5,9 +5,18 @@ export interface Region {
   url: string
 }
 
+export interface LocalizedName {
+  name: string
+  language: {
+    name: string
+    url: string
+  }
+}
+
 export interface RegionDetails {
   id: number
   name: string
+  names: LocalizedName[]
   locations: Location[]
   main_generation: {
     name: string
@@ -27,6 +36,7 @@ export interface Location {
 export interface LocationDetails {
   id: number
   name: string
+  names: LocalizedName[]
   region: {
     name: string
     url: string
@@ -83,6 +93,7 @@ export interface EncounterDetail {
 export interface Pokemon {
   id: number
   name: string
+  names?: LocalizedName[]  // Optional - only available from pokemon-species endpoint
   height: number
   weight: number
   sprites: {
@@ -170,6 +181,25 @@ class PokeApiService {
 
   getPokemonSpriteUrl (id: number): string {
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+  }
+
+  // Helper function to get localized name from API response
+  getLocalizedName (names: LocalizedName[] | undefined, languageCode: string, fallback?: string): string {
+    // If no names array provided, return fallback
+    if (!names || names.length === 0) {
+      return fallback || ''
+    }
+
+    // Try to find name in requested language
+    const localized = names.find(n => n.language.name === languageCode)
+    if (localized) return localized.name
+
+    // Fallback to English
+    const english = names.find(n => n.language.name === 'en')
+    if (english) return english.name
+
+    // Last resort: return first available name or empty string
+    return names[0]?.name || fallback || ''
   }
 
   // Search Pokemon by trying to fetch them directly - efficient on-demand search

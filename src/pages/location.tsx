@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MapPin, Fish, Waves, Leaf, Sparkles, ChevronRight } from 'lucide-react'
@@ -25,6 +26,7 @@ interface EncounterInfo {
 
 interface LocationInfo {
   name: string
+  names?: { name: string; language: { name: string; url: string } }[]
   regionName: string
   areas: LocationAreaDetails[]
 }
@@ -47,6 +49,7 @@ const cardVariants = {
 }
 
 export function LocationPage () {
+  const { t, i18n } = useTranslation()
   const { locationName } = useParams<{ locationName: string }>()
   const [locationInfo, setLocationInfo] = useState<LocationInfo | null>(null)
   const [areas, setAreas] = useState<LocationAreaDetails[]>([])
@@ -82,6 +85,7 @@ export function LocationPage () {
           const locData = data as LocationDetails
           locationData = {
             name: locData.name,
+            names: locData.names,
             regionName: locData.region.name,
             areas: [],
           }
@@ -238,7 +242,7 @@ export function LocationPage () {
             <Button variant="ghost" className="mb-6 -ml-2" asChild>
               <Link to={`/region/${locationInfo.regionName}`}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to {formatName(locationInfo.regionName)}
+                {t('location.backToRegion', { region: formatName(locationInfo.regionName) })}
               </Link>
             </Button>
 
@@ -248,11 +252,10 @@ export function LocationPage () {
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                  {formatName(locationInfo.name)}
+                  {pokeApi.getLocalizedName(locationInfo.names, i18n.language, formatName(locationInfo.name))}
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  {encounterList.length} Pokemon in {areas.length} area
-                  {areas.length !== 1 ? 's' : ''}
+                  {t('location.pokemonInAreas', { count: encounterList.length, areas: areas.length })}
                 </p>
               </div>
             </div>
@@ -381,9 +384,9 @@ export function LocationPage () {
                   <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
                     <MapPin className="h-10 w-10 text-muted-foreground" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">No Pokemon Encounters</h3>
+                  <h3 className="text-xl font-semibold mb-2">{t('location.noEncounters')}</h3>
                   <p className="text-muted-foreground max-w-md mx-auto">
-                    This location doesn't have any recorded wild Pokemon encounters in the database.
+                    {t('location.noEncountersDesc')}
                   </p>
                 </div>
               </CardContent>

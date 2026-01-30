@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -51,16 +52,10 @@ const statIcons: Record<string, React.ReactNode> = {
   speed: <Gauge className="h-4 w-4" />,
 }
 
-const statNames: Record<string, string> = {
-  hp: 'HP',
-  attack: 'Attack',
-  defense: 'Defense',
-  'special-attack': 'Sp. Attack',
-  'special-defense': 'Sp. Defense',
-  speed: 'Speed',
-}
+
 
 export function PokemonPage () {
+  const { t, i18n } = useTranslation()
   const { pokemonName } = useParams<{ pokemonName: string }>()
   const [pokemon, setPokemon] = useState<Pokemon | null>(null)
   const [locations, setLocations] = useState<PokemonLocation[]>([])
@@ -226,7 +221,9 @@ export function PokemonPage () {
                     />
                   </div>
                   <div className="p-6">
-                    <h1 className="text-4xl font-bold capitalize mb-4">{pokemon.name}</h1>
+                    <h1 className="text-4xl font-bold capitalize mb-4">
+                      {pokeApi.getLocalizedName(pokemon.names, i18n.language, pokemon.name)}
+                    </h1>
                     <div className="flex flex-wrap gap-2 mb-6">
                       {pokemon.types.map(type => (
                         <Badge
@@ -241,14 +238,14 @@ export function PokemonPage () {
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
                         <Ruler className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Height</p>
+                          <p className="text-sm text-muted-foreground">{t('pokemon.height')}</p>
                           <p className="font-semibold">{(pokemon.height / 10).toFixed(1)} m</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
                         <Weight className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <p className="text-sm text-muted-foreground">Weight</p>
+                          <p className="text-sm text-muted-foreground">{t('pokemon.weight')}</p>
                           <p className="font-semibold">{(pokemon.weight / 10).toFixed(1)} kg</p>
                         </div>
                       </div>
@@ -267,10 +264,10 @@ export function PokemonPage () {
             >
               <Tabs defaultValue="stats" className="w-full">
                 <TabsList className="mb-4">
-                  <TabsTrigger value="stats">Stats</TabsTrigger>
-                  <TabsTrigger value="abilities">Abilities</TabsTrigger>
+                  <TabsTrigger value="stats">{t('pokemon.stats')}</TabsTrigger>
+                  <TabsTrigger value="abilities">{t('pokemon.abilities')}</TabsTrigger>
                   <TabsTrigger value="locations">
-                    Locations ({processedLocations.length})
+                    {t('pokemon.locations')} ({processedLocations.length})
                   </TabsTrigger>
                 </TabsList>
 
@@ -278,9 +275,9 @@ export function PokemonPage () {
                   <Card className="border-0 shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
-                        <span>Base Stats</span>
+                        <span>{t('pokemon.stats')}</span>
                         <Badge variant="secondary" className="text-lg">
-                          Total: {getTotalStats()}
+                          {t('pokemon.totalStats', { count: getTotalStats() })}
                         </Badge>
                       </CardTitle>
                     </CardHeader>
@@ -299,7 +296,7 @@ export function PokemonPage () {
                               <div className="flex items-center gap-2">
                                 {statIcons[stat.stat.name]}
                                 <span className="text-sm font-medium">
-                                  {statNames[stat.stat.name]}
+                                  {t(`pokemon.statNames.${stat.stat.name}`)}
                                 </span>
                               </div>
                               <span className="text-sm font-bold">{stat.base_stat}</span>
@@ -332,7 +329,7 @@ export function PokemonPage () {
                             </span>
                             {ability.is_hidden && (
                               <Badge variant="outline" className="text-xs">
-                                Hidden
+                                {t('pokemon.hidden')}
                               </Badge>
                             )}
                           </motion.div>
@@ -345,7 +342,7 @@ export function PokemonPage () {
                 <TabsContent value="locations">
                   <Card className="border-0 shadow-lg">
                     <CardHeader>
-                      <CardTitle>Where to Find</CardTitle>
+                      <CardTitle>{t('pokemon.whereToFind')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {processedLocations.length > 0 ? (
@@ -367,7 +364,7 @@ export function PokemonPage () {
                                   </p>
                                   <div className="flex items-center gap-2 mt-1">
                                     <span className="text-xs text-muted-foreground">
-                                      Lv. {location.minLevel}-{location.maxLevel}
+                                      {t('pokemon.level', { min: location.minLevel, max: location.maxLevel })}
                                     </span>
                                   </div>
                                 </div>
