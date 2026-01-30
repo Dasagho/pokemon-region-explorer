@@ -1,7 +1,9 @@
 import { Link, useLocation, useMatches } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { MapPin, Home, Sparkles, ChevronRight } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
@@ -10,14 +12,15 @@ interface MainLayoutProps {
   children: React.ReactNode
 }
 
-const navItems = [
-  { path: '/', label: 'Home', icon: Home },
-  { path: '/#regions', label: 'Regions', icon: MapPin },
-]
-
 export function MainLayout ({ children }: MainLayoutProps) {
+  const { t } = useTranslation()
   const location = useLocation()
   const matches = useMatches()
+
+  const navItems = [
+    { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/#regions', label: t('nav.regions'), icon: MapPin },
+  ]
 
   // Generate breadcrumbs from route matches
   const breadcrumbs = matches
@@ -69,12 +72,13 @@ export function MainLayout ({ children }: MainLayoutProps) {
             </nav>
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
+            <LanguageSwitcher />
             <ModeToggle />
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon" className="relative">
                   <MapPin className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
+                  <span className="sr-only">{t('nav.regions')}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px] sm:w-[340px]">
@@ -141,10 +145,10 @@ export function MainLayout ({ children }: MainLayoutProps) {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-semibold">PokéRegion Explorer</span>
+              <span className="font-semibold">{t('app.name')}</span>
             </div>
             <p className="text-center text-sm text-muted-foreground">
-              Data provided by{' '}
+              {t('footer.dataProvidedBy')}{' '}
               <a
                 href="https://pokeapi.co/"
                 target="_blank"
@@ -154,7 +158,7 @@ export function MainLayout ({ children }: MainLayoutProps) {
                 PokéAPI
               </a>
             </p>
-            <p className="text-sm text-muted-foreground">Built with React & shadcn/ui</p>
+            <p className="text-sm text-muted-foreground">{t('footer.builtWith')}</p>
           </div>
         </div>
       </footer>

@@ -1,0 +1,130 @@
+{
+  "app": {
+    "name": "Explorador PokéRegion",
+    "title": "Explorador PokéRegion - Descubre Pokemon por Región",
+    "description": "Descubre Pokemon por sus hábitats naturales. Explora regiones, descubre ubicaciones y encuentra detalles de encuentros para tus Pokemon favoritos."
+  },
+  "nav": {
+    "home": "Inicio",
+    "regions": "Regiones",
+    "search": "Buscar Pokemon",
+    "searchPlaceholder": "Buscar Pokemon por nombre...",
+    "clearSearch": "Limpiar búsqueda"
+  },
+  "hero": {
+    "exploreRegions": "Explora {{count}} Regiones",
+    "title": "PokéRegion",
+    "subtitle": "Explorador",
+    "description": "Descubre Pokemon por sus hábitats naturales. Explora regiones, descubre ubicaciones y encuentra detalles de encuentros para tus Pokemon favoritos.",
+    "stats": {
+      "regions": "{{count}} Regiones",
+      "pokemon": "1000+ Pokemon",
+      "liveData": "Datos en Vivo"
+    }
+  },
+  "regions": {
+    "title": "Regiones",
+    "subtitle": "{{count}} regiones disponibles",
+    "region": "Región",
+    "explore": "Explora ubicaciones, rutas y encuentra Pokemon salvajes",
+    "notFound": "No se encontraron regiones",
+    "adjustSearch": "Intenta ajustar tu búsqueda",
+    "regionInfo": {
+      "kanto": "La primera región introducida en la serie Pokemon, con ubicaciones icónicas como Pueblo Paleta y Mt. Moon.",
+      "johto": "Una región al oeste de Kanto con los Pokemon legendarios Ho-Oh y Lugia, con rica historia y cultura.",
+      "hoenn": "Una región con ambientes diversos incluyendo áreas volcánicas, océanos y rutas vastas.",
+      "sinnoh": "Una región basada en Hokkaido, Japón, con Mt. Coronet en su centro.",
+      "unova": "Una región diversa lejos de Kanto con una gran área metropolitana.",
+      "kalos": "Una región inspirada en Francia, con Mega Evolución y la icónica Torre Prisma.",
+      "alola": "Una región de archipiélago tropical con formas Alola y pruebas de isla.",
+      "galar": "Una región basada en el Reino Unido con Dynamax y Gigantamax.",
+      "paldea": "Una región de mundo abierto con el fenómeno Terastal."
+    }
+  },
+  "region": {
+    "backToRegions": "Volver a Regiones",
+    "starterPokemon": "Pokemon Iniciales",
+    "locations": "Ubicaciones",
+    "pokedexes": "Pokedex",
+    "locationCount": "{{count}} Ubicaciones",
+    "pokedexCount": "{{count}} Pokedex",
+    "encounters": "encuentros",
+    "viewEncounters": "Ver encuentros"
+  },
+  "location": {
+    "backToRegion": "Volver a {{region}}",
+    "pokemonInAreas": "{{count}} Pokemon en {{areas}} área(s)",
+    "noEncounters": "No hay Encuentros de Pokemon",
+    "noEncountersDesc": "Esta ubicación no tiene encuentros de Pokemon salvajes registrados en la base de datos.",
+    "types": {
+      "route": "Ruta",
+      "settlement": "Asentamiento",
+      "cave": "Cueva/Montaña",
+      "forest": "Bosque",
+      "tower": "Torre",
+      "area": "Área"
+    }
+  },
+  "pokemon": {
+    "backToRegions": "Volver a Regiones",
+    "stats": "Estadísticas",
+    "abilities": "Habilidades",
+    "locations": "Ubicaciones",
+    "height": "Altura",
+    "weight": "Peso",
+    "totalStats": "Total: {{count}}",
+    "hidden": "Oculta",
+    "whereToFind": "Dónde Encontrar",
+    "noLocationData": "No hay datos de ubicación disponibles para este Pokemon",
+    "level": "Nv. {{min}}-{{max}}",
+    "statNames": {
+      "hp": "PS",
+      "attack": "Ataque",
+      "defense": "Defensa",
+      "special-attack": "At. Esp.",
+      "special-defense": "Def. Esp.",
+      "speed": "Velocidad"
+    }
+  },
+  "encounter": {
+    "methods": {
+      "walk": "Caminar",
+      "surf": "Surf",
+      "old-rod": "Caña Vieja",
+      "good-rod": "Caña Buena",
+      "super-rod": "Supercaña",
+      "rock-smash": "Golpe Roca",
+      "headbutt": "Cabezazo",
+      "dark-grass": "Hierba Alta",
+      "grass-spots": "Manchas de Hierba",
+      "cave-spots": "Manchas de Cueva",
+      "bridge-spots": "Manchas de Puente",
+      "sodge": "Charca",
+      "palm-tree": "Palmera",
+      "berry-piles": "Montones de Bayas",
+      "bubbling-spots": "Manchas Burbujeantes",
+      "ambush": "Emboscada"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "notFound": "No Encontrado",
+    "tryAgain": "Intentar de Nuevo",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "searching": "Buscando...",
+    "noResults": "No se encontraron resultados",
+    "moreResults": "+{{count}} resultados más"
+  },
+  "footer": {
+    "dataProvidedBy": "Datos proporcionados por",
+    "builtWith": "Construido con React & shadcn/ui"
+  },
+  "language": {
+    "title": "Idioma",
+    "english": "English",
+    "spanish": "Español",
+    "switchTo": "Cambiar a {{language}}"
+  }
+}

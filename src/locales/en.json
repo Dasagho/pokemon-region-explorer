@@ -1,0 +1,130 @@
+{
+  "app": {
+    "name": "PokéRegion Explorer",
+    "title": "PokéRegion Explorer - Discover Pokemon by Region",
+    "description": "Discover Pokemon by their natural habitats. Browse regions, explore locations, and find encounter details for your favorite Pokemon."
+  },
+  "nav": {
+    "home": "Home",
+    "regions": "Regions",
+    "search": "Search Pokemon",
+    "searchPlaceholder": "Search Pokemon by name...",
+    "clearSearch": "Clear search"
+  },
+  "hero": {
+    "exploreRegions": "Explore {{count}} Regions",
+    "title": "PokéRegion",
+    "subtitle": "Explorer",
+    "description": "Discover Pokemon by their natural habitats. Browse regions, explore locations, and find encounter details for your favorite Pokemon.",
+    "stats": {
+      "regions": "{{count}} Regions",
+      "pokemon": "1000+ Pokemon",
+      "liveData": "Live Data"
+    }
+  },
+  "regions": {
+    "title": "Regions",
+    "subtitle": "{{count}} regions available",
+    "region": "Region",
+    "explore": "Explore locations, routes, and encounter wild Pokemon",
+    "notFound": "No regions found",
+    "adjustSearch": "Try adjusting your search query",
+    "regionInfo": {
+      "kanto": "The first region introduced in the Pokemon series, featuring iconic locations like Pallet Town and Mt. Moon.",
+      "johto": "A region west of Kanto featuring the legendary Pokemon Ho-Oh and Lugia, with rich history and culture.",
+      "hoenn": "A region with diverse environments including volcanic areas, oceans, and vast routes.",
+      "sinnoh": "A region based on Hokkaido, Japan, featuring Mt. Coronet at its center.",
+      "unova": "A diverse region far from Kanto featuring a large metropolitan area.",
+      "kalos": "A region inspired by France, featuring Mega Evolution and the iconic Prism Tower.",
+      "alola": "A tropical archipelago region featuring Alolan forms and island trials.",
+      "galar": "A region based on the United Kingdom featuring Dynamax and Gigantamax.",
+      "paldea": "An open-world region featuring the Terastal phenomenon."
+    }
+  },
+  "region": {
+    "backToRegions": "Back to Regions",
+    "starterPokemon": "Starter Pokemon",
+    "locations": "Locations",
+    "pokedexes": "Pokedexes",
+    "locationCount": "{{count}} Locations",
+    "pokedexCount": "{{count}} Pokedexes",
+    "encounters": "encounters",
+    "viewEncounters": "View encounters"
+  },
+  "location": {
+    "backToRegion": "Back to {{region}}",
+    "pokemonInAreas": "{{count}} Pokemon in {{areas}} area(s)",
+    "noEncounters": "No Pokemon Encounters",
+    "noEncountersDesc": "This location doesn't have any recorded wild Pokemon encounters in the database.",
+    "types": {
+      "route": "Route",
+      "settlement": "Settlement",
+      "cave": "Cave/Mountain",
+      "forest": "Forest",
+      "tower": "Tower",
+      "area": "Area"
+    }
+  },
+  "pokemon": {
+    "backToRegions": "Back to Regions",
+    "stats": "Stats",
+    "abilities": "Abilities",
+    "locations": "Locations",
+    "height": "Height",
+    "weight": "Weight",
+    "totalStats": "Total: {{count}}",
+    "hidden": "Hidden",
+    "whereToFind": "Where to Find",
+    "noLocationData": "No location data available for this Pokemon",
+    "level": "Lv. {{min}}-{{max}}",
+    "statNames": {
+      "hp": "HP",
+      "attack": "Attack",
+      "defense": "Defense",
+      "special-attack": "Sp. Attack",
+      "special-defense": "Sp. Defense",
+      "speed": "Speed"
+    }
+  },
+  "encounter": {
+    "methods": {
+      "walk": "Walk",
+      "surf": "Surf",
+      "old-rod": "Old Rod",
+      "good-rod": "Good Rod",
+      "super-rod": "Super Rod",
+      "rock-smash": "Rock Smash",
+      "headbutt": "Headbutt",
+      "dark-grass": "Dark Grass",
+      "grass-spots": "Grass Spots",
+      "cave-spots": "Cave Spots",
+      "bridge-spots": "Bridge Spots",
+      "sodge": "Sodge",
+      "palm-tree": "Palm Tree",
+      "berry-piles": "Berry Piles",
+      "bubbling-spots": "Bubbling Spots",
+      "ambush": "Ambush"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "notFound": "Not Found",
+    "tryAgain": "Try Again",
+    "close": "Close",
+    "search": "Search",
+    "searching": "Searching...",
+    "noResults": "No results found",
+    "moreResults": "+{{count}} more results"
+  },
+  "footer": {
+    "dataProvidedBy": "Data provided by",
+    "builtWith": "Built with React & shadcn/ui"
+  },
+  "language": {
+    "title": "Language",
+    "english": "English",
+    "spanish": "Español",
+    "switchTo": "Switch to {{language}}"
+  }
+}

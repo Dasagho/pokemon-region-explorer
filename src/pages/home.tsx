@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { MapPin, ChevronRight, Sparkles } from 'lucide-react'
@@ -117,6 +118,7 @@ function useDebounce<T> (value: T, delay: number): T {
 }
 
 export function HomePage () {
+  const { t } = useTranslation()
   const [regions, setRegions] = useState<Region[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -134,7 +136,7 @@ export function HomePage () {
         const regionsData = await pokeApi.getRegions()
         setRegions(regionsData)
       } catch (err) {
-        setError('Failed to load regions')
+        setError(t('common.error'))
         console.error(err)
       } finally {
         setLoading(false)
@@ -142,7 +144,7 @@ export function HomePage () {
     }
 
     fetchRegions()
-  }, [])
+  }, [t])
 
   // Search Pokemon when debounced query changes
   useEffect(() => {
@@ -171,6 +173,11 @@ export function HomePage () {
     return name.charAt(0).toUpperCase() + name.slice(1)
   }
 
+  // Get region description based on current language
+  const getRegionDescription = (regionName: string) => {
+    return t(`regions.regionInfo.${regionName}`, { defaultValue: t('regions.explore') })
+  }
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -182,7 +189,7 @@ export function HomePage () {
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
             <Sparkles className="w-8 h-8 text-destructive" />
           </div>
-          <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
+          <h2 className="text-2xl font-bold text-destructive mb-2">{t('common.error')}</h2>
           <p className="text-muted-foreground">{error}</p>
         </motion.div>
       </div>
@@ -209,9 +216,9 @@ export function HomePage () {
           className="flex items-center justify-between mb-8"
         >
           <div>
-            <h2 className="text-3xl font-bold tracking-tight mb-1">Regions</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-1">{t('regions.title')}</h2>
             <p className="text-muted-foreground">
-              {regions.length} {regions.length === 1 ? 'region' : 'regions'} available
+              {t('regions.subtitle', { count: regions.length })}
             </p>
           </div>
         </motion.div>
@@ -249,7 +256,7 @@ export function HomePage () {
                             className={`${colors.bg} ${colors.text} capitalize font-medium`}
                           >
                             <MapPin className="h-3 w-3 mr-1" />
-                            Region
+                            {t('regions.region')}
                           </Badge>
                           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                             <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -259,7 +266,7 @@ export function HomePage () {
                           {formatRegionName(region.name)}
                         </CardTitle>
                         <CardDescription className="line-clamp-2">
-                          Explore locations, routes, and encounter wild Pokemon
+                          {getRegionDescription(region.name)}
                         </CardDescription>
                       </CardHeader>
 

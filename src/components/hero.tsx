@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, MapPin, Search, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -19,6 +20,7 @@ export function Hero ({
   searchResults,
   isSearching,
 }: HeroProps) {
+  const { t } = useTranslation()
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -103,7 +105,9 @@ export function Hero ({
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6"
           >
             <Sparkles className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm font-medium">Explore {totalRegions} Regions</span>
+            <span className="text-sm font-medium">
+              {t('hero.exploreRegions', { count: totalRegions })}
+            </span>
           </motion.div>
 
           {/* Title */}
@@ -115,10 +119,10 @@ export function Hero ({
             style={{ fontFamily: 'Space Grotesk, sans-serif' }}
           >
             <span className="bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-              PokéRegion
+              {t('hero.title')}
             </span>
             <br />
-            <span className="text-foreground">Explorer</span>
+            <span className="text-foreground">{t('hero.subtitle')}</span>
           </motion.h1>
 
           {/* Description */}
@@ -128,8 +132,7 @@ export function Hero ({
             transition={{ delay: 0.4 }}
             className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
           >
-            Discover Pokemon by their natural habitats. Browse regions, explore locations, and find
-            encounter details for your favorite Pokemon.
+            {t('hero.description')}
           </motion.p>
 
           {/* Search Bar */}
@@ -145,7 +148,7 @@ export function Hero ({
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search Pokemon by name..."
+                placeholder={t('nav.searchPlaceholder')}
                 value={searchQuery}
                 onChange={e => onSearchChange(e.target.value)}
                 onFocus={() => setIsFocused(true)}
@@ -174,7 +177,7 @@ export function Hero ({
                   {isSearching ? (
                     <div className="p-4 text-center text-muted-foreground">
                       <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-2" />
-                      Searching...
+                      {t('common.searching')}
                     </div>
                   ) : searchResults.length > 0 ? (
                     <div className="max-h-80 overflow-y-auto">
@@ -208,13 +211,13 @@ export function Hero ({
                       ))}
                       {searchResults.length > 10 && (
                         <div className="px-4 py-2 text-center text-sm text-muted-foreground border-t border-border">
-                          +{searchResults.length - 10} more results
+                          {t('common.moreResults', { count: searchResults.length - 10 })}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="p-4 text-center text-muted-foreground">
-                      No Pokemon found matching &quot;{searchQuery}&quot;
+                      {t('common.noResults')}
                     </div>
                   )}
                 </motion.div>
@@ -231,15 +234,15 @@ export function Hero ({
           >
             <div className="flex items-center gap-2 text-muted-foreground">
               <MapPin className="w-4 h-4" />
-              <span className="text-sm">{totalRegions} Regions</span>
+              <span className="text-sm">{t('hero.stats.regions', { count: totalRegions })}</span>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-sm">1000+ Pokemon</span>
+              <span className="text-sm">{t('hero.stats.pokemon')}</span>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-sm">Live Data</span>
+              <span className="text-sm">{t('hero.stats.liveData')}</span>
             </div>
           </motion.div>
         </motion.div>
