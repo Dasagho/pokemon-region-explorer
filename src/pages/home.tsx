@@ -88,12 +88,13 @@ export function HomePage () {
       <div className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight mb-2">Pokemon Regions</h1>
         <p className="text-muted-foreground text-lg">
-          Explore Pokemon locations, encounter areas, and discover where to find your favorite Pokemon
+          Explore Pokemon locations, encounter areas, and discover where to find your favorite
+          Pokemon
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {regions.map((region) => (
+        {regions.map(region => (
           <Link key={region.name} to={`/region/${region.name}`}>
             <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-primary/50">
               <CardHeader className="pb-2">

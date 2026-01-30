@@ -1,15 +1,9 @@
-import { createBrowserRouter, Outlet } from 'react-router-dom'
-import { MainLayout } from '@/components/main-layout'
+import { createBrowserRouter } from 'react-router-dom'
+import { LayoutWrapper } from '@/components/layout-wrapper'
 import { HomePage } from '@/pages/home'
 import { RegionPage } from '@/pages/region'
 import { LocationPage } from '@/pages/location'
 import { PokemonPage } from '@/pages/pokemon'
-
-const LayoutWrapper = () => (
-  <MainLayout>
-    <Outlet />
-  </MainLayout>
-)
 
 export const router = createBrowserRouter([
   {

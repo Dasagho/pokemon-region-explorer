@@ -28,7 +28,7 @@ export function MainLayout ({ children }: MainLayoutProps) {
               <span className="font-bold inline-block">PokéRegion</span>
             </Link>
             <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-              {navItems.map((item) => (
+              {navItems.map(item => (
                 <Link
                   key={item.label}
                   to={item.path}
@@ -53,7 +53,7 @@ export function MainLayout ({ children }: MainLayoutProps) {
               </SheetTrigger>
               <SheetContent side="right" className="w-[240px] sm:w-[300px]">
                 <nav className="flex flex-col space-y-4 mt-8">
-                  {navItems.map((item) => (
+                  {navItems.map(item => (
                     <Link
                       key={item.label}
                       to={item.path}

@@ -72,13 +72,6 @@ export function PokemonPage () {
     fetchPokemon()
   }, [pokemonName])
 
-  const formatName = (name: string) => {
-    return name
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
   const getTotalStats = () => {
     if (!pokemon) return 0
     return pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0)
@@ -128,9 +121,11 @@ export function PokemonPage () {
                   </span>
                 </div>
                 <img
-                  src={pokemon.sprites.other['official-artwork'].front_default ||
+                  src={
+                    pokemon.sprites.other['official-artwork'].front_default ||
                     pokemon.sprites.front_default ||
-                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'}
+                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
+                  }
                   alt={pokemon.name}
                   className="w-64 h-64 mx-auto object-contain drop-shadow-2xl"
                 />
@@ -138,7 +133,7 @@ export function PokemonPage () {
               <div className="p-6">
                 <h1 className="text-4xl font-bold capitalize mb-4">{pokemon.name}</h1>
                 <div className="flex gap-2 mb-6">
-                  {pokemon.types.map((type) => (
+                  {pokemon.types.map(type => (
                     <Badge
                       key={type.type.name}
                       className={`${typeColors[type.type.name] || 'bg-gray-500'} text-white capitalize text-sm px-3 py-1`}
@@ -180,7 +175,7 @@ export function PokemonPage () {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {pokemon.stats.map((stat) => {
+              {pokemon.stats.map(stat => {
                 const percentage = (stat.base_stat / 255) * 100
                 return (
                   <div key={stat.stat.name} className="space-y-2">
@@ -204,7 +199,7 @@ export function PokemonPage () {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {pokemon.abilities?.map((ability) => (
+                {pokemon.abilities?.map(ability => (
                   <div
                     key={ability.ability.name}
                     className="flex items-center justify-between p-3 rounded-lg bg-muted"
@@ -213,7 +208,9 @@ export function PokemonPage () {
                       {ability.ability.name.split('-').join(' ')}
                     </span>
                     {ability.is_hidden && (
-                      <Badge variant="outline" className="text-xs">Hidden</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Hidden
+                      </Badge>
                     )}
                   </div>
                 )) || <p className="text-muted-foreground">No abilities data available</p>}

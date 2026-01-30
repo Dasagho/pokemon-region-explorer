@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, MapPin, Fish, Waves, Leaf } from 'lucide-react'
-import { pokeApi, type LocationDetails, type LocationAreaDetails, type Pokemon } from '@/services/pokeApi'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  pokeApi,
+  type LocationDetails,
+  type LocationAreaDetails,
+  type Pokemon,
+} from '@/services/pokeApi'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
@@ -138,12 +143,15 @@ export function LocationPage () {
   }
 
   const encounterList = Array.from(encounters.values())
-  const groupedByMethod = encounterList.reduce((acc, encounter) => {
-    const method = encounter.method
-    if (!acc[method]) acc[method] = []
-    acc[method].push(encounter)
-    return acc
-  }, {} as Record<string, EncounterInfo[]>)
+  const groupedByMethod = encounterList.reduce(
+    (acc, encounter) => {
+      const method = encounter.method
+      if (!acc[method]) acc[method] = []
+      acc[method].push(encounter)
+      return acc
+    },
+    {} as Record<string, EncounterInfo[]>,
+  )
 
   return (
     <div className="container py-10">
@@ -160,7 +168,8 @@ export function LocationPage () {
           <h1 className="text-4xl font-bold tracking-tight">{formatName(location.name)}</h1>
         </div>
         <p className="text-muted-foreground">
-          {encounterList.length} Pokemon available in {areas.length} area{areas.length !== 1 ? 's' : ''}
+          {encounterList.length} Pokemon available in {areas.length} area
+          {areas.length !== 1 ? 's' : ''}
         </p>
       </div>
 
@@ -184,11 +193,8 @@ export function LocationPage () {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {methodEncounters
                     .sort((a, b) => a.pokemon.id - b.pokemon.id)
-                    .map((encounter) => (
-                      <Link
-                        key={encounter.pokemon.name}
-                        to={`/pokemon/${encounter.pokemon.name}`}
-                      >
+                    .map(encounter => (
+                      <Link key={encounter.pokemon.name} to={`/pokemon/${encounter.pokemon.name}`}>
                         <Card className="group hover:shadow-lg transition-all cursor-pointer overflow-hidden">
                           <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
@@ -204,9 +210,12 @@ export function LocationPage () {
                           <CardContent>
                             <div className="flex flex-col items-center">
                               <img
-                                src={encounter.pokemon.sprites.other['official-artwork'].front_default ||
+                                src={
+                                  encounter.pokemon.sprites.other['official-artwork']
+                                    .front_default ||
                                   encounter.pokemon.sprites.front_default ||
-                                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'}
+                                  'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
+                                }
                                 alt={encounter.pokemon.name}
                                 className="w-24 h-24 object-contain group-hover:scale-110 transition-transform"
                               />
@@ -215,7 +224,11 @@ export function LocationPage () {
                               </h3>
                               <div className="flex gap-1 mt-1">
                                 {encounter.pokemon.types.map(t => (
-                                  <Badge key={t.type.name} variant="outline" className="text-xs capitalize">
+                                  <Badge
+                                    key={t.type.name}
+                                    variant="outline"
+                                    className="text-xs capitalize"
+                                  >
                                     {t.type.name}
                                   </Badge>
                                 ))}
