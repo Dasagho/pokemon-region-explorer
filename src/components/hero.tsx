@@ -7,7 +7,7 @@ interface HeroProps {
   totalRegions: number
 }
 
-export function Hero({ searchQuery, onSearchChange, totalRegions }: HeroProps) {
+export function Hero ({ searchQuery, onSearchChange, totalRegions }: HeroProps) {
   return (
     <section className="relative overflow-hidden">
       {/* Animated Gradient Background */}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, MapPin, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowLeft, MapPin, ChevronRight, Sparkles } from 'lucide-react'
 import { pokeApi, type RegionDetails } from '@/services/pokeApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -61,7 +62,72 @@ const regionInfo: Record<string, { description: string; generation: string; star
     },
   }
 
-export function RegionPage() {
+const regionColors: Record<string, { bg: string; text: string; gradient: string }> = {
+  kanto: {
+    bg: 'bg-red-500/10',
+    text: 'text-red-600 dark:text-red-400',
+    gradient: 'from-red-500 to-orange-500',
+  },
+  johto: {
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-600 dark:text-amber-400',
+    gradient: 'from-amber-500 to-yellow-500',
+  },
+  hoenn: {
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-600 dark:text-blue-400',
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  sinnoh: {
+    bg: 'bg-cyan-500/10',
+    text: 'text-cyan-600 dark:text-cyan-400',
+    gradient: 'from-cyan-500 to-teal-500',
+  },
+  unova: {
+    bg: 'bg-purple-500/10',
+    text: 'text-purple-600 dark:text-purple-400',
+    gradient: 'from-purple-500 to-indigo-500',
+  },
+  kalos: {
+    bg: 'bg-pink-500/10',
+    text: 'text-pink-600 dark:text-pink-400',
+    gradient: 'from-pink-500 to-rose-500',
+  },
+  alola: {
+    bg: 'bg-orange-500/10',
+    text: 'text-orange-600 dark:text-orange-400',
+    gradient: 'from-orange-500 to-red-500',
+  },
+  galar: {
+    bg: 'bg-indigo-500/10',
+    text: 'text-indigo-600 dark:text-indigo-400',
+    gradient: 'from-indigo-500 to-purple-500',
+  },
+  paldea: {
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    gradient: 'from-emerald-500 to-green-500',
+  },
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' as const },
+  },
+}
+
+export function RegionPage () {
   const { regionName } = useParams<{ regionName: string }>()
   const [region, setRegion] = useState<RegionDetails | null>(null)
   const [loading, setLoading] = useState(true)
@@ -133,124 +199,197 @@ export function RegionPage() {
 
   if (error || !region) {
     return (
-      <div className="container py-10">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-destructive">Error</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-destructive" />
+          </div>
+          <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
           <p className="text-muted-foreground">{error || 'Region not found'}</p>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
   const info = regionInfo[region.name]
+  const colors = regionColors[region.name] || {
+    bg: 'bg-muted',
+    text: 'text-muted-foreground',
+    gradient: 'from-gray-500 to-gray-600',
+  }
 
   return (
-    <div className="container py-10">
-      <Button variant="ghost" className="mb-6" asChild>
-        <Link to="/">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Regions
-        </Link>
-      </Button>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient}/20`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
 
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-4xl font-bold tracking-tight capitalize">{region.name}</h1>
-          <Badge variant="outline">{info?.generation || 'Unknown Generation'}</Badge>
+        <div className="relative container py-12 md:py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Button variant="ghost" className="mb-6 -ml-2" asChild>
+              <Link to="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Regions
+              </Link>
+            </Button>
+
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+              <h1 className="text-5xl md:text-6xl font-bold tracking-tight capitalize">
+                {region.name}
+              </h1>
+              <Badge
+                variant="secondary"
+                className={`${colors.bg} ${colors.text} w-fit text-sm px-3 py-1`}
+              >
+                {info?.generation || 'Unknown Generation'}
+              </Badge>
+            </div>
+
+            <p className="text-muted-foreground text-lg max-w-2xl">
+              {info?.description ||
+                `Explore the ${region.name} region and discover Pokemon encounters.`}
+            </p>
+          </motion.div>
         </div>
-        <p className="text-muted-foreground text-lg max-w-2xl">
-          {info?.description ||
-            `Explore the ${region.name} region and discover Pokemon encounters.`}
-        </p>
-      </div>
+      </section>
 
-      {info?.starters && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-lg">Starter Pokemon</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              {info.starters.map(starter => (
-                <Link
+      <section className="container pb-16">
+        {/* Starters */}
+        {info?.starters && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-10"
+          >
+            <h2 className="text-2xl font-bold mb-4">Starter Pokemon</h2>
+            <div className="flex flex-wrap gap-4">
+              {info.starters.map((starter, index) => (
+                <motion.div
                   key={starter}
-                  to={`/pokemon/${starter}`}
-                  className="flex flex-col items-center p-4 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
                 >
-                  <img
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${getStarterId(starter)}.png`}
-                    alt={starter}
-                    className="w-20 h-20 object-contain"
-                  />
-                  <span className="capitalize text-sm mt-2 font-medium">{starter}</span>
-                </Link>
+                  <Link to={`/pokemon/${starter}`}>
+                    <Card className="group cursor-pointer border-0 shadow-md hover:shadow-xl transition-all duration-300 card-lift overflow-hidden">
+                      <CardContent className="p-4 flex flex-col items-center">
+                        <motion.img
+                          src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${getStarterId(starter)}.png`}
+                          alt={starter}
+                          className="w-24 h-24 object-contain mb-2"
+                          whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                          transition={{ duration: 0.5 }}
+                        />
+                        <span className="capitalize text-sm font-medium group-hover:text-primary transition-colors">
+                          {starter}
+                        </span>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </motion.div>
+        )}
 
-      <Tabs defaultValue="locations" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="locations">Locations ({region.locations.length})</TabsTrigger>
-          <TabsTrigger value="pokedexes">Pokedexes ({region.pokedexes.length})</TabsTrigger>
-        </TabsList>
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Tabs defaultValue="locations" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="locations" className="gap-2">
+                <MapPin className="h-4 w-4" />
+                Locations ({region.locations.length})
+              </TabsTrigger>
+              <TabsTrigger value="pokedexes">Pokedexes ({region.pokedexes.length})</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="locations">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {region.locations.map(location => {
-              const type = getLocationType(location.name)
-              return (
-                <Link key={location.name} to={`/location/${location.name}`}>
-                  <Card className="group hover:shadow-md transition-all cursor-pointer h-full">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary" className={`${getLocationColor(type)}`}>
-                          {type}
-                        </Badge>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-                      <CardTitle className="text-lg mt-2">
-                        {formatLocationName(location.name)}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span>View encounters</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
-        </TabsContent>
+            <TabsContent value="locations">
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {region.locations.map(location => {
+                  const type = getLocationType(location.name)
+                  return (
+                    <motion.div key={location.name} variants={cardVariants}>
+                      <Link to={`/location/${location.name}`}>
+                        <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer h-full border-0 shadow-md card-lift">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <Badge variant="secondary" className={`${getLocationColor(type)}`}>
+                                {type}
+                              </Badge>
+                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                              </div>
+                            </div>
+                            <CardTitle className="text-lg mt-2 group-hover:text-primary transition-colors">
+                              {formatLocationName(location.name)}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              <span>View encounters</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </motion.div>
+            </TabsContent>
 
-        <TabsContent value="pokedexes">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {region.pokedexes.map(pokedex => (
-              <Card key={pokedex.name}>
-                <CardHeader>
-                  <CardTitle className="text-lg capitalize">
-                    {pokedex.name.split('-').join(' ')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Regional Pokedex for {region.name}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="pokedexes">
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {region.pokedexes.map(pokedex => (
+                  <motion.div key={pokedex.name} variants={cardVariants}>
+                    <Card className="border-0 shadow-md">
+                      <CardHeader>
+                        <CardTitle className="text-lg capitalize">
+                          {pokedex.name.split('-').join(' ')}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Regional Pokedex for {region.name}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
+      </section>
     </div>
   )
 }
 
-function getStarterId(name: string): number {
+function getStarterId (name: string): number {
   const starters: Record<string, number> = {
     bulbasaur: 1,
     charmander: 4,

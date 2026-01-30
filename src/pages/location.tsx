@@ -22,7 +22,7 @@ interface EncounterInfo {
   versions: string[]
 }
 
-export function LocationPage() {
+export function LocationPage () {
   const { locationName } = useParams<{ locationName: string }>()
   const [location, setLocation] = useState<LocationDetails | null>(null)
   const [areas, setAreas] = useState<LocationAreaDetails[]>([])

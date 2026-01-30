@@ -12,10 +12,10 @@ interface MainLayoutProps {
 
 const navItems = [
   { path: '/', label: 'Home', icon: Home },
-  { path: '#', label: 'Regions', icon: MapPin },
+  { path: '/#regions', label: 'Regions', icon: MapPin },
 ]
 
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout ({ children }: MainLayoutProps) {
   const location = useLocation()
   const matches = useMatches()
 

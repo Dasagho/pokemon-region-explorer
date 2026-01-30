@@ -1,12 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Ruler, Weight, Zap, Shield, Heart, Swords, Gauge } from 'lucide-react'
-import { pokeApi, type Pokemon } from '@/services/pokeApi'
+import { motion } from 'framer-motion'
+import {
+  ArrowLeft,
+  Ruler,
+  Weight,
+  Zap,
+  Shield,
+  Heart,
+  Swords,
+  Gauge,
+  MapPin,
+  ChevronRight,
+} from 'lucide-react'
+import { pokeApi, type Pokemon, type PokemonLocation } from '@/services/pokeApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const typeColors: Record<string, string> = {
   normal: 'bg-gray-400',
@@ -47,9 +60,10 @@ const statNames: Record<string, string> = {
   speed: 'Speed',
 }
 
-export function PokemonPage() {
+export function PokemonPage () {
   const { pokemonName } = useParams<{ pokemonName: string }>()
   const [pokemon, setPokemon] = useState<Pokemon | null>(null)
+  const [locations, setLocations] = useState<PokemonLocation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,8 +73,12 @@ export function PokemonPage() {
 
       try {
         setLoading(true)
-        const data = await pokeApi.getPokemon(pokemonName)
-        setPokemon(data)
+        const [pokemonData, locationsData] = await Promise.all([
+          pokeApi.getPokemon(pokemonName),
+          pokeApi.getPokemonLocations(pokemonName),
+        ])
+        setPokemon(pokemonData)
+        setLocations(locationsData)
       } catch (err) {
         setError('Failed to load Pokemon details')
         console.error(err)
@@ -77,6 +95,62 @@ export function PokemonPage() {
     return pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0)
   }
 
+  // Process locations to group by method
+  const processedLocations = useMemo(() => {
+    const locationMap = new Map<
+      string,
+      {
+        name: string
+        methods: Set<string>
+        versions: Set<string>
+        minLevel: number
+        maxLevel: number
+      }
+    >()
+
+    locations.forEach(encounter => {
+      const locationName = encounter.location_area.name
+      const existing = locationMap.get(locationName)
+
+      const allMethods = new Set<string>()
+      const allVersions = new Set<string>()
+      let minLvl = 100
+      let maxLvl = 1
+
+      encounter.version_details.forEach(vd => {
+        allVersions.add(vd.version.name)
+        vd.encounter_details.forEach(ed => {
+          allMethods.add(ed.method.name)
+          minLvl = Math.min(minLvl, ed.min_level)
+          maxLvl = Math.max(maxLvl, ed.max_level)
+        })
+      })
+
+      if (existing) {
+        allMethods.forEach(m => existing.methods.add(m))
+        allVersions.forEach(v => existing.versions.add(v))
+        existing.minLevel = Math.min(existing.minLevel, minLvl)
+        existing.maxLevel = Math.max(existing.maxLevel, maxLvl)
+      } else {
+        locationMap.set(locationName, {
+          name: locationName,
+          methods: allMethods,
+          versions: allVersions,
+          minLevel: minLvl,
+          maxLevel: maxLvl,
+        })
+      }
+    })
+
+    return Array.from(locationMap.values())
+  }, [locations])
+
+  const getMethodColor = (method: string) => {
+    if (method.includes('surf')) return 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+    if (method.includes('fish')) return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
+    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+  }
+
   if (loading) {
     return (
       <div className="container py-10">
@@ -91,133 +165,245 @@ export function PokemonPage() {
 
   if (error || !pokemon) {
     return (
-      <div className="container py-10">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-destructive">Error</h2>
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+            <Heart className="w-8 h-8 text-destructive" />
+          </div>
+          <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
           <p className="text-muted-foreground">{error || 'Pokemon not found'}</p>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="container py-10">
-      <Button variant="ghost" className="mb-6" asChild>
-        <Link to="/">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Regions
-        </Link>
-      </Button>
+    <div className="min-h-screen">
+      <div className="container py-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Button variant="ghost" className="mb-6 -ml-2" asChild>
+            <Link to="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Regions
+            </Link>
+          </Button>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column - Image & Basic Info */}
-        <div className="space-y-6">
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="relative bg-gradient-to-br from-muted to-muted/50 p-8">
-                <div className="absolute top-4 right-4">
-                  <span className="text-6xl font-bold text-muted-foreground/20">
-                    #{pokemon.id.toString().padStart(3, '0')}
-                  </span>
-                </div>
-                <img
-                  src={
-                    pokemon.sprites.other['official-artwork'].front_default ||
-                    pokemon.sprites.front_default ||
-                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
-                  }
-                  alt={pokemon.name}
-                  className="w-64 h-64 mx-auto object-contain drop-shadow-2xl"
-                />
-              </div>
-              <div className="p-6">
-                <h1 className="text-4xl font-bold capitalize mb-4">{pokemon.name}</h1>
-                <div className="flex gap-2 mb-6">
-                  {pokemon.types.map(type => (
-                    <Badge
-                      key={type.type.name}
-                      className={`${typeColors[type.type.name] || 'bg-gray-500'} text-white capitalize text-sm px-3 py-1`}
-                    >
-                      {type.type.name}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Ruler className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Height</p>
-                      <p className="font-semibold">{(pokemon.height / 10).toFixed(1)} m</p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Left Column - Image & Basic Info */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-6"
+            >
+              <Card className="overflow-hidden border-0 shadow-xl">
+                <CardContent className="p-0">
+                  <div className="relative bg-gradient-to-br from-muted to-muted/50 p-8">
+                    <div className="absolute top-4 right-4">
+                      <span className="text-6xl font-bold text-muted-foreground/20">
+                        #{pokemon.id.toString().padStart(3, '0')}
+                      </span>
                     </div>
+                    <motion.img
+                      src={
+                        pokemon.sprites.other['official-artwork'].front_default ||
+                        pokemon.sprites.front_default ||
+                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
+                      }
+                      alt={pokemon.name}
+                      className="w-64 h-64 mx-auto object-contain drop-shadow-2xl"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.2, type: 'spring' }}
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Weight className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Weight</p>
-                      <p className="font-semibold">{(pokemon.weight / 10).toFixed(1)} kg</p>
+                  <div className="p-6">
+                    <h1 className="text-4xl font-bold capitalize mb-4">{pokemon.name}</h1>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {pokemon.types.map(type => (
+                        <Badge
+                          key={type.type.name}
+                          className={`${typeColors[type.type.name] || 'bg-gray-500'} text-white capitalize text-sm px-3 py-1`}
+                        >
+                          {type.type.name}
+                        </Badge>
+                      ))}
                     </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column - Stats */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Base Stats</span>
-                <Badge variant="secondary" className="text-lg">
-                  Total: {getTotalStats()}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {pokemon.stats.map(stat => {
-                const percentage = (stat.base_stat / 255) * 100
-                return (
-                  <div key={stat.stat.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {statIcons[stat.stat.name]}
-                        <span className="text-sm font-medium">{statNames[stat.stat.name]}</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+                        <Ruler className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Height</p>
+                          <p className="font-semibold">{(pokemon.height / 10).toFixed(1)} m</p>
+                        </div>
                       </div>
-                      <span className="text-sm font-bold">{stat.base_stat}</span>
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
+                        <Weight className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Weight</p>
+                          <p className="font-semibold">{(pokemon.weight / 10).toFixed(1)} kg</p>
+                        </div>
+                      </div>
                     </div>
-                    <Progress value={percentage} className="h-2" />
                   </div>
-                )
-              })}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Abilities</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {pokemon.abilities?.map(ability => (
-                  <div
-                    key={ability.ability.name}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted"
-                  >
-                    <span className="capitalize font-medium">
-                      {ability.ability.name.split('-').join(' ')}
-                    </span>
-                    {ability.is_hidden && (
-                      <Badge variant="outline" className="text-xs">
-                        Hidden
-                      </Badge>
-                    )}
-                  </div>
-                )) || <p className="text-muted-foreground">No abilities data available</p>}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Right Column - Stats & Details */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-6"
+            >
+              <Tabs defaultValue="stats" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="stats">Stats</TabsTrigger>
+                  <TabsTrigger value="abilities">Abilities</TabsTrigger>
+                  <TabsTrigger value="locations">
+                    Locations ({processedLocations.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="stats">
+                  <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <span>Base Stats</span>
+                        <Badge variant="secondary" className="text-lg">
+                          Total: {getTotalStats()}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {pokemon.stats.map((stat, index) => {
+                        const percentage = (stat.base_stat / 255) * 100
+                        return (
+                          <motion.div
+                            key={stat.stat.name}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 + index * 0.05 }}
+                            className="space-y-2"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {statIcons[stat.stat.name]}
+                                <span className="text-sm font-medium">
+                                  {statNames[stat.stat.name]}
+                                </span>
+                              </div>
+                              <span className="text-sm font-bold">{stat.base_stat}</span>
+                            </div>
+                            <Progress value={percentage} className="h-2" />
+                          </motion.div>
+                        )
+                      })}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="abilities">
+                  <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle>Abilities</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {pokemon.abilities?.map((ability, index) => (
+                          <motion.div
+                            key={ability.ability.name}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 + index * 0.05 }}
+                            className="flex items-center justify-between p-3 rounded-lg bg-muted"
+                          >
+                            <span className="capitalize font-medium">
+                              {ability.ability.name.split('-').join(' ')}
+                            </span>
+                            {ability.is_hidden && (
+                              <Badge variant="outline" className="text-xs">
+                                Hidden
+                              </Badge>
+                            )}
+                          </motion.div>
+                        )) || <p className="text-muted-foreground">No abilities data available</p>}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="locations">
+                  <Card className="border-0 shadow-lg">
+                    <CardHeader>
+                      <CardTitle>Where to Find</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {processedLocations.length > 0 ? (
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                          {processedLocations.map((location, index) => (
+                            <motion.div
+                              key={location.name}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.03 }}
+                            >
+                              <Link
+                                to={`/location/${location.name}`}
+                                className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors group"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium capitalize truncate">
+                                    {location.name.split('-').join(' ')}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-xs text-muted-foreground">
+                                      Lv. {location.minLevel}-{location.maxLevel}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {Array.from(location.methods)
+                                    .slice(0, 2)
+                                    .map(method => (
+                                      <Badge
+                                        key={method}
+                                        variant="secondary"
+                                        className={`text-xs ${getMethodColor(method)}`}
+                                      >
+                                        {method.split('-').join(' ')}
+                                      </Badge>
+                                    ))}
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                </div>
+                              </Link>
+                            </motion.div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                          <p className="text-muted-foreground">
+                            No location data available for this Pokemon
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

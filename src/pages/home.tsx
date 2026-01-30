@@ -99,7 +99,7 @@ const cardVariants = {
   },
 }
 
-export function HomePage() {
+export function HomePage () {
   const [regions, setRegions] = useState<Region[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
