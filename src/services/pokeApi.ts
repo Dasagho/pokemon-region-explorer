@@ -145,11 +145,13 @@ class PokeApiService {
   }
 
   async getLocationOrAreaDetails (name: string): Promise<LocationDetails | LocationAreaDetails> {
-    // Location-areas end with "-area" and use a different endpoint
-    if (name.endsWith('-area')) {
-      return this.fetch<LocationAreaDetails>(`${API_BASE}/location-area/${name}`)
+    // Try location-area first (most specific areas use this endpoint)
+    try {
+      return await this.fetch<LocationAreaDetails>(`${API_BASE}/location-area/${name}`)
+    } catch {
+      // If location-area fails, try location endpoint
+      return this.fetch<LocationDetails>(`${API_BASE}/location/${name}`)
     }
-    return this.fetch<LocationDetails>(`${API_BASE}/location/${name}`)
   }
 
   async getPokemon (name: string): Promise<Pokemon> {
