@@ -144,6 +144,14 @@ class PokeApiService {
     return this.fetch<LocationAreaDetails>(`${API_BASE}/location-area/${name}`)
   }
 
+  async getLocationOrAreaDetails (name: string): Promise<LocationDetails | LocationAreaDetails> {
+    // Location-areas end with "-area" and use a different endpoint
+    if (name.endsWith('-area')) {
+      return this.fetch<LocationAreaDetails>(`${API_BASE}/location-area/${name}`)
+    }
+    return this.fetch<LocationDetails>(`${API_BASE}/location/${name}`)
+  }
+
   async getPokemon (name: string): Promise<Pokemon> {
     return this.fetch<Pokemon>(`${API_BASE}/pokemon/${name}`)
   }
