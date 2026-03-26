@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, MapPin, Fish, Waves, Leaf, Sparkles, ChevronRight } from 'lucide-react'
 import {
   pokeApi,
@@ -14,6 +15,18 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+const METHOD_COLORS = {
+  surf: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  fish: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+  default: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+} as const
+
+const METHOD_GRADIENTS = {
+  surf: 'from-blue-500/20 to-cyan-500/20',
+  fish: 'from-cyan-500/20 to-teal-500/20',
+  default: 'from-emerald-500/20 to-green-500/20',
+} as const
 
 interface EncounterInfo {
   pokemon: Pokemon
@@ -141,45 +154,43 @@ export function LocationPage () {
         }
 
         setEncounters(encounterMap)
-      } catch (err) {
-        setError('Failed to load location details')
-        console.error(err)
+      } catch {
+        setError(t('location.fetchError'))
       } finally {
         setLoading(false)
       }
     }
 
     fetchLocation()
-  }, [locationName])
+  }, [locationName, t])
 
-  const formatName = (name: string) => {
+  const formatName = useCallback((name: string) => {
     return name
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ')
-  }
+  }, [])
 
-  const getMethodIcon = (method: string) => {
-    if (method.includes('surf')) return Waves
-    if (method.includes('fish')) return Fish
+  const getMethodIcon = useCallback((method: string) => {
+    const methodLower = method.toLowerCase()
+    if (methodLower.includes('surf')) return Waves
+    if (methodLower.includes('fish')) return Fish
     return Leaf
-  }
+  }, [])
 
-  const getMethodColor = (method: string) => {
-    if (method.includes('surf')) {
-      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-    }
-    if (method.includes('fish')) {
-      return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'
-    }
-    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-  }
+  const getMethodColor = useCallback((method: string) => {
+    const methodLower = method.toLowerCase()
+    if (methodLower.includes('surf')) return METHOD_COLORS.surf
+    if (methodLower.includes('fish')) return METHOD_COLORS.fish
+    return METHOD_COLORS.default
+  }, [])
 
-  const getMethodGradient = (method: string) => {
-    if (method.includes('surf')) return 'from-blue-500/20 to-cyan-500/20'
-    if (method.includes('fish')) return 'from-cyan-500/20 to-teal-500/20'
-    return 'from-emerald-500/20 to-green-500/20'
-  }
+  const getMethodGradient = useCallback((method: string) => {
+    const methodLower = method.toLowerCase()
+    if (methodLower.includes('surf')) return METHOD_GRADIENTS.surf
+    if (methodLower.includes('fish')) return METHOD_GRADIENTS.fish
+    return METHOD_GRADIENTS.default
+  }, [])
 
   if (loading) {
     return (
@@ -207,7 +218,7 @@ export function LocationPage () {
             <Sparkles className="w-8 h-8 text-destructive" />
           </div>
           <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
-          <p className="text-muted-foreground">{error || 'Location not found'}</p>
+          <p className="text-muted-foreground">{error || t('location.notFound')}</p>
         </motion.div>
       </div>
     )
@@ -228,6 +239,12 @@ export function LocationPage () {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>
+          {formatName(locationInfo.name)} - {t('app.name')}
+        </title>
+        <meta name="description" content={t('location.pokemonInAreas', { count: 0, areas: 0 })} />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-cyan-500/20" />
@@ -252,10 +269,17 @@ export function LocationPage () {
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                  {pokeApi.getLocalizedName(locationInfo.names, i18n.language, formatName(locationInfo.name))}
+                  {pokeApi.getLocalizedName(
+                    locationInfo.names,
+                    i18n.language,
+                    formatName(locationInfo.name),
+                  )}
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  {t('location.pokemonInAreas', { count: encounterList.length, areas: areas.length })}
+                  {t('location.pokemonInAreas', {
+                    count: encounterList.length,
+                    areas: areas.length,
+                  })}
                 </p>
               </div>
             </div>
@@ -303,12 +327,14 @@ export function LocationPage () {
                     >
                       {methodEncounters
                         .sort((a, b) => a.pokemon.id - b.pokemon.id)
-                        .map((encounter) => (
+                        .map(encounter => (
                           <motion.div key={encounter.pokemon.name} variants={cardVariants}>
                             <Link to={`/pokemon/${encounter.pokemon.name}`}>
                               <Card className="group relative overflow-hidden cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 card-lift">
                                 {/* Background Gradient */}
-                                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                                <div
+                                  className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                                />
 
                                 <CardHeader className="relative pb-2">
                                   <div className="flex items-center justify-between">
@@ -374,10 +400,7 @@ export function LocationPage () {
             </Tabs>
           </motion.div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="border-0 shadow-lg">
               <CardContent className="py-16">
                 <div className="text-center">

@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import {
   ArrowLeft,
   Ruler,
@@ -13,8 +14,14 @@ import {
   Gauge,
   MapPin,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react'
-import { pokeApi, type Pokemon, type PokemonLocation } from '@/services/pokeApi'
+import {
+  pokeApi,
+  type Pokemon,
+  type PokemonLocation,
+  type LocalizedAbility,
+} from '@/services/pokeApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -52,13 +59,18 @@ const statIcons: Record<string, React.ReactNode> = {
   speed: <Gauge className="h-4 w-4" />,
 }
 
-
+const METHOD_COLORS = {
+  surf: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  fish: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
+  default: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+} as const
 
 export function PokemonPage () {
   const { t, i18n } = useTranslation()
   const { pokemonName } = useParams<{ pokemonName: string }>()
   const [pokemon, setPokemon] = useState<Pokemon | null>(null)
   const [locations, setLocations] = useState<PokemonLocation[]>([])
+  const [abilityNames, setAbilityNames] = useState<Map<string, LocalizedAbility>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -74,23 +86,27 @@ export function PokemonPage () {
         ])
         setPokemon(pokemonData)
         setLocations(locationsData)
-      } catch (err) {
-        setError('Failed to load Pokemon details')
-        console.error(err)
+
+        if (pokemonData.abilities?.length > 0) {
+          const names = pokemonData.abilities.map(a => a.ability.name)
+          const localized = await pokeApi.getAbilitiesLocalized(names)
+          setAbilityNames(localized)
+        }
+      } catch {
+        setError(t('common.error'))
       } finally {
         setLoading(false)
       }
     }
 
     fetchPokemon()
-  }, [pokemonName])
+  }, [pokemonName, t])
 
-  const getTotalStats = () => {
+  const getTotalStats = useCallback(() => {
     if (!pokemon) return 0
     return pokemon.stats.reduce((sum, stat) => sum + stat.base_stat, 0)
-  }
+  }, [pokemon])
 
-  // Process locations to group by method
   const processedLocations = useMemo(() => {
     const locationMap = new Map<
       string,
@@ -140,11 +156,12 @@ export function PokemonPage () {
     return Array.from(locationMap.values())
   }, [locations])
 
-  const getMethodColor = (method: string) => {
-    if (method.includes('surf')) return 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-    if (method.includes('fish')) return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
-    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-  }
+  const getMethodColor = useCallback((method: string) => {
+    const methodLower = method.toLowerCase()
+    if (methodLower.includes('surf')) return METHOD_COLORS.surf
+    if (methodLower.includes('fish')) return METHOD_COLORS.fish
+    return METHOD_COLORS.default
+  }, [])
 
   if (loading) {
     return (
@@ -167,10 +184,10 @@ export function PokemonPage () {
           className="text-center"
         >
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-            <Heart className="w-8 h-8 text-destructive" />
+            <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
-          <h2 className="text-2xl font-bold text-destructive mb-2">Oops!</h2>
-          <p className="text-muted-foreground">{error || 'Pokemon not found'}</p>
+          <h2 className="text-2xl font-bold text-destructive mb-2">{t('common.errorMessage')}</h2>
+          <p className="text-muted-foreground">{error || t('common.notFound')}</p>
         </motion.div>
       </div>
     )
@@ -178,6 +195,12 @@ export function PokemonPage () {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>
+          {pokeApi.getLocalizedName(pokemon.names, i18n.language, pokemon.name)} - {t('app.name')}
+        </title>
+        <meta name="description" content={t('pokemon.whereToFind')} />
+      </Helmet>
       <div className="container py-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -187,12 +210,11 @@ export function PokemonPage () {
           <Button variant="ghost" className="mb-6 -ml-2" asChild>
             <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Regions
+              {t('pokemon.backToRegions')}
             </Link>
           </Button>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Left Column - Image & Basic Info */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -255,7 +277,6 @@ export function PokemonPage () {
               </Card>
             </motion.div>
 
-            {/* Right Column - Stats & Details */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -312,28 +333,39 @@ export function PokemonPage () {
                 <TabsContent value="abilities">
                   <Card className="border-0 shadow-lg">
                     <CardHeader>
-                      <CardTitle>Abilities</CardTitle>
+                      <CardTitle>{t('pokemon.abilities')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {pokemon.abilities?.map((ability, index) => (
-                          <motion.div
-                            key={ability.ability.name}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 + index * 0.05 }}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted"
-                          >
-                            <span className="capitalize font-medium">
-                              {ability.ability.name.split('-').join(' ')}
-                            </span>
-                            {ability.is_hidden && (
-                              <Badge variant="outline" className="text-xs">
-                                {t('pokemon.hidden')}
-                              </Badge>
-                            )}
-                          </motion.div>
-                        )) || <p className="text-muted-foreground">No abilities data available</p>}
+                        {pokemon.abilities?.map((ability, index) => {
+                          const localizedAbility = abilityNames.get(ability.ability.name)
+                          return (
+                            <motion.div
+                              key={ability.ability.name}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.1 + index * 0.05 }}
+                              className="p-3 rounded-lg bg-muted"
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="capitalize font-medium">
+                                  {localizedAbility?.name.split('-').join(' ') ||
+                                    ability.ability.name.split('-').join(' ')}
+                                </span>
+                                {ability.is_hidden && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {t('pokemon.hidden')}
+                                  </Badge>
+                                )}
+                              </div>
+                              {localizedAbility?.effect && (
+                                <p className="text-sm text-muted-foreground">
+                                  {localizedAbility.effect}
+                                </p>
+                              )}
+                            </motion.div>
+                          )
+                        }) || <p className="text-muted-foreground">{t('pokemon.noAbilities')}</p>}
                       </div>
                     </CardContent>
                   </Card>
@@ -364,7 +396,10 @@ export function PokemonPage () {
                                   </p>
                                   <div className="flex items-center gap-2 mt-1">
                                     <span className="text-xs text-muted-foreground">
-                                      {t('pokemon.level', { min: location.minLevel, max: location.maxLevel })}
+                                      {t('pokemon.level', {
+                                        min: location.minLevel,
+                                        max: location.maxLevel,
+                                      })}
                                     </span>
                                   </div>
                                 </div>
@@ -389,9 +424,7 @@ export function PokemonPage () {
                       ) : (
                         <div className="text-center py-8">
                           <MapPin className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                          <p className="text-muted-foreground">
-                            No location data available for this Pokemon
-                          </p>
+                          <p className="text-muted-foreground">{t('pokemon.noLocationData')}</p>
                         </div>
                       )}
                     </CardContent>
