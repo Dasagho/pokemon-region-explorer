@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, MapPin, Search, X } from 'lucide-react'
@@ -25,25 +25,24 @@ export function Hero ({
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Close search results when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsFocused(false)
-      }
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      setIsFocused(false)
     }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const clearSearch = () => {
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [handleClickOutside])
+
+  const clearSearch = useCallback(() => {
     onSearchChange('')
     inputRef.current?.focus()
-  }
+  }, [onSearchChange])
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative">
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 via-purple-500/20 to-blue-500/20 animate-gradient" />
 
@@ -141,7 +140,7 @@ export function Hero ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="relative max-w-md mx-auto"
+            className="relative z-50 max-w-md mx-auto"
           >
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
@@ -201,7 +200,7 @@ export function Hero ({
                               alt={pokemon.name}
                               className="w-10 h-10 object-contain"
                               onError={e => {
-                                (e.target as HTMLImageElement).src =
+                                ;(e.target as HTMLImageElement).src =
                                   'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
                               }}
                             />
