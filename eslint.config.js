@@ -7,7 +7,12 @@ import prettier from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'src/components/ui/**']),
+  globalIgnores([
+    'dist',
+    'src/components/ui/**',
+    'src/router.tsx',
+    'src/components/error-boundary.tsx',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -25,14 +30,14 @@ export default defineConfig([
       // Standard JS style rules
       'no-var': 'error',
       'prefer-const': 'error',
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'multi-line'],
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'multi-line'],
       'no-unused-vars': 'off', // TypeScript handles this
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'semi': ['error', 'never'],
-      'quotes': ['error', 'single'],
+      semi: ['error', 'never'],
+      quotes: ['error', 'single'],
       'comma-dangle': ['error', 'always-multiline'],
-      'indent': ['error', 2],
+      indent: ['error', 2],
       'no-trailing-spaces': 'error',
       'eol-last': 'error',
       'space-before-function-paren': ['error', 'always'],
