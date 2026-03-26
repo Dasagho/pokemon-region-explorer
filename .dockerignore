@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Development files
+.git
+.gitignore
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Build output
+dist
+build
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+.cache
+.temp
+*.log
+README.md
+.prettierrc
+.prettierignore
+.eslintrc
+eslint.config.js
+prettier.config.js
