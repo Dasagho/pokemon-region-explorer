@@ -2,81 +2,15 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import { MapPin, ChevronRight, Sparkles } from 'lucide-react'
 import { pokeApi, type Region, type Pokemon } from '@/services/pokeApi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Hero } from '@/components/hero'
 import { RegionSkeleton } from '@/components/region-skeleton'
-
-const regionImages: Record<string, string> = {
-  kanto:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
-  johto:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/157.png',
-  hoenn:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/260.png',
-  sinnoh:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/392.png',
-  unova:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/500.png',
-  kalos:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png',
-  alola:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/730.png',
-  galar:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/815.png',
-  paldea:
-    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/906.png',
-}
-
-const regionColors: Record<string, { bg: string; text: string; gradient: string }> = {
-  kanto: {
-    bg: 'bg-red-500/10',
-    text: 'text-red-600 dark:text-red-400',
-    gradient: 'from-red-500/20 to-orange-500/20',
-  },
-  johto: {
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-600 dark:text-amber-400',
-    gradient: 'from-amber-500/20 to-yellow-500/20',
-  },
-  hoenn: {
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-600 dark:text-blue-400',
-    gradient: 'from-blue-500/20 to-cyan-500/20',
-  },
-  sinnoh: {
-    bg: 'bg-cyan-500/10',
-    text: 'text-cyan-600 dark:text-cyan-400',
-    gradient: 'from-cyan-500/20 to-teal-500/20',
-  },
-  unova: {
-    bg: 'bg-purple-500/10',
-    text: 'text-purple-600 dark:text-purple-400',
-    gradient: 'from-purple-500/20 to-indigo-500/20',
-  },
-  kalos: {
-    bg: 'bg-pink-500/10',
-    text: 'text-pink-600 dark:text-pink-400',
-    gradient: 'from-pink-500/20 to-rose-500/20',
-  },
-  alola: {
-    bg: 'bg-orange-500/10',
-    text: 'text-orange-600 dark:text-orange-400',
-    gradient: 'from-orange-500/20 to-red-500/20',
-  },
-  galar: {
-    bg: 'bg-indigo-500/10',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    gradient: 'from-indigo-500/20 to-purple-500/20',
-  },
-  paldea: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    gradient: 'from-emerald-500/20 to-green-500/20',
-  },
-}
+import { useDebounce } from '@/hooks/useDebounce'
+import { getRegionColors, getRegionImageUrl } from '@/config/region-config'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -98,23 +32,6 @@ const cardVariants = {
       ease: [0.4, 0, 0.2, 1] as const,
     },
   },
-}
-
-// Debounce hook
-function useDebounce<T> (value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [value, delay])
-
-  return debouncedValue
 }
 
 export function HomePage () {
@@ -198,6 +115,10 @@ export function HomePage () {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>{t('app.title')}</title>
+        <meta name="description" content={t('app.description')} />
+      </Helmet>
       <Hero
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -234,11 +155,8 @@ export function HomePage () {
             className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           >
             {regions.map((region, index) => {
-              const colors = regionColors[region.name] || {
-                bg: 'bg-muted',
-                text: 'text-muted-foreground',
-                gradient: 'from-gray-500/20 to-gray-600/20',
-              }
+              const colors = getRegionColors(region.name)
+              const imageUrl = getRegionImageUrl(region.name)
 
               return (
                 <motion.div key={region.name} variants={cardVariants} custom={index}>
@@ -246,7 +164,7 @@ export function HomePage () {
                     <Card className="group relative overflow-hidden cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 card-lift">
                       {/* Background Gradient */}
                       <div
-                        className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                        className={`absolute inset-0 bg-gradient-to-br ${colors.gradientHover} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                       />
 
                       <CardHeader className="relative pb-2">
@@ -272,9 +190,9 @@ export function HomePage () {
 
                       <CardContent className="relative">
                         <div className="flex justify-center py-6">
-                          {regionImages[region.name] ? (
+                          {imageUrl ? (
                             <motion.img
-                              src={regionImages[region.name]}
+                              src={imageUrl}
                               alt={`${region.name} starter`}
                               className="w-28 h-28 object-contain drop-shadow-lg"
                               whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
