@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import { ArrowLeft, MapPin, ChevronRight, Sparkles } from 'lucide-react'
 import { pokeApi, type RegionDetails } from '@/services/pokeApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,93 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-const regionInfo: Record<string, { generation: string; starters: string[] }> = {
-  kanto: {
-    generation: 'Generation I',
-    starters: ['bulbasaur', 'charmander', 'squirtle'],
-  },
-  johto: {
-    generation: 'Generation II',
-    starters: ['chikorita', 'cyndaquil', 'totodile'],
-  },
-  hoenn: {
-    generation: 'Generation III',
-    starters: ['treecko', 'torchic', 'mudkip'],
-  },
-  sinnoh: {
-    generation: 'Generation IV',
-    starters: ['turtwig', 'chimchar', 'piplup'],
-  },
-  unova: {
-    generation: 'Generation V',
-    starters: ['snivy', 'tepig', 'oshawott'],
-  },
-  kalos: {
-    generation: 'Generation VI',
-    starters: ['chespin', 'fennekin', 'froakie'],
-  },
-  alola: {
-    generation: 'Generation VII',
-    starters: ['rowlet', 'litten', 'popplio'],
-  },
-  galar: {
-    generation: 'Generation VIII',
-    starters: ['grookey', 'scorbunny', 'sobble'],
-  },
-  paldea: {
-    generation: 'Generation IX',
-    starters: ['sprigatito', 'fuecoco', 'quaxly'],
-  },
-}
-
-const regionColors: Record<string, { bg: string; text: string; gradient: string }> = {
-  kanto: {
-    bg: 'bg-red-500/10',
-    text: 'text-red-600 dark:text-red-400',
-    gradient: 'from-red-500 to-orange-500',
-  },
-  johto: {
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-600 dark:text-amber-400',
-    gradient: 'from-amber-500 to-yellow-500',
-  },
-  hoenn: {
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-600 dark:text-blue-400',
-    gradient: 'from-blue-500 to-cyan-500',
-  },
-  sinnoh: {
-    bg: 'bg-cyan-500/10',
-    text: 'text-cyan-600 dark:text-cyan-400',
-    gradient: 'from-cyan-500 to-teal-500',
-  },
-  unova: {
-    bg: 'bg-purple-500/10',
-    text: 'text-purple-600 dark:text-purple-400',
-    gradient: 'from-purple-500 to-indigo-500',
-  },
-  kalos: {
-    bg: 'bg-pink-500/10',
-    text: 'text-pink-600 dark:text-pink-400',
-    gradient: 'from-pink-500 to-rose-500',
-  },
-  alola: {
-    bg: 'bg-orange-500/10',
-    text: 'text-orange-600 dark:text-orange-400',
-    gradient: 'from-orange-500 to-red-500',
-  },
-  galar: {
-    bg: 'bg-indigo-500/10',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    gradient: 'from-indigo-500 to-purple-500',
-  },
-  paldea: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    gradient: 'from-emerald-500 to-green-500',
-  },
-}
+import { getRegionConfig, getRegionColors } from '@/config/region-config'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -203,15 +118,17 @@ export function RegionPage () {
     )
   }
 
-  const info = regionInfo[region.name]
-  const colors = regionColors[region.name] || {
-    bg: 'bg-muted',
-    text: 'text-muted-foreground',
-    gradient: 'from-gray-500 to-gray-600',
-  }
+  const info = getRegionConfig(region.name)
+  const colors = getRegionColors(region.name)
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>
+          {pokeApi.getLocalizedName(region.names, i18n.language)} - {t('app.name')}
+        </title>
+        <meta name="description" content={t('regions.explore')} />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient}/20`} />
