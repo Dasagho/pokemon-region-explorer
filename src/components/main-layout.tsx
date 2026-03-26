@@ -1,4 +1,4 @@
-import { Link, useLocation, useMatches } from 'react-router-dom'
+import { Link, useLocation, useMatches, useNavigation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { MapPin, Home, Sparkles, ChevronRight } from 'lucide-react'
@@ -16,6 +16,8 @@ export function MainLayout ({ children }: MainLayoutProps) {
   const { t } = useTranslation()
   const location = useLocation()
   const matches = useMatches()
+  const navigation = useNavigation()
+  const isNavigating = navigation.state === 'loading'
 
   const navItems = [
     { path: '/', label: t('nav.home'), icon: Home },
@@ -32,6 +34,15 @@ export function MainLayout ({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Global Loading Indicator */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 z-[100] bg-primary"
+        initial={{ scaleX: 0, opacity: 1 }}
+        animate={{ scaleX: isNavigating ? 1 : 0, opacity: isNavigating ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        style={{ transformOrigin: 'left' }}
+      />
+
       {/* Header */}
       <motion.header
         initial={{ y: -100 }}
