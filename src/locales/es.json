@@ -56,6 +56,8 @@
     "pokemonInAreas": "{{count}} Pokemon en {{areas}} área(s)",
     "noEncounters": "No hay Encuentros de Pokemon",
     "noEncountersDesc": "Esta ubicación no tiene encuentros de Pokemon salvajes registrados en la base de datos.",
+    "fetchError": "Error al cargar los detalles de la ubicación",
+    "notFound": "Ubicación no encontrada",
     "types": {
       "route": "Ruta",
       "settlement": "Asentamiento",
@@ -109,6 +111,8 @@
   "common": {
     "loading": "Cargando...",
     "error": "Error",
+    "errorMessage": "Algo salió mal",
+    "errorDescription": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
     "notFound": "No Encontrado",
     "tryAgain": "Intentar de Nuevo",
     "close": "Cerrar",

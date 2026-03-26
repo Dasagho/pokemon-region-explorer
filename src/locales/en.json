@@ -56,6 +56,8 @@
     "pokemonInAreas": "{{count}} Pokemon in {{areas}} area(s)",
     "noEncounters": "No Pokemon Encounters",
     "noEncountersDesc": "This location doesn't have any recorded wild Pokemon encounters in the database.",
+    "fetchError": "Failed to load location details",
+    "notFound": "Location not found",
     "types": {
       "route": "Route",
       "settlement": "Settlement",
@@ -109,6 +111,8 @@
   "common": {
     "loading": "Loading...",
     "error": "Error",
+    "errorMessage": "Something went wrong",
+    "errorDescription": "An unexpected error occurred. Please try again.",
     "notFound": "Not Found",
     "tryAgain": "Try Again",
     "close": "Close",
